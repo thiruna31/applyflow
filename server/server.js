@@ -78,9 +78,15 @@ app.post('/api/notify', async (req, res) => {
     });
     await transporter.verify();
   } catch (err) {
-    console.error('Gmail auth failed:', err.message);
-    return res.status(401).json({ success: false, error: 'Gmail authentication failed. Check your App Password. Error: ' + err.message });
-  }
+  console.error('FULL ERROR:', err);
+
+  return res.status(401).json({
+    success: false,
+    error: err.message,
+    code: err.code,
+    response: err.response
+  });
+}
 
   // Build the HTML email
   const emailHTML = buildEmailTemplate({
