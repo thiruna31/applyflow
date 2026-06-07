@@ -177,3 +177,4 @@ Send a Gmail notification for a job application.
 
 MIT — free to use, modify, and deploy.
 # applyflow
+# applyflow
