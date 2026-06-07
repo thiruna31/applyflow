@@ -998,19 +998,47 @@ function saveGmailConfig() {
 }
 async function testGmail() {
   if (!S.gmail.addr || !S.gmail.pass || !S.gmail.backendUrl) {
-    showGmailStatus('Save Gmail settings first (all fields required)', 'red'); return;
+    showGmailStatus('Save Gmail settings first (all fields required)', 'red');
+    return;
   }
+
   showGmailStatus('Sending test email...', 'blue');
+
   try {
-    const res = await fetch(S.gmail.backendUrl + '/test-email', {
+    const res = await fetch(S.gmail.backendUrl + '/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gmailUser: S.gmail.addr, gmailPass: S.gmail.pass, to: S.gmail.to || S.gmail.addr })
+      body: JSON.stringify({
+        gmail: S.gmail.addr,
+        appPassword: S.gmail.pass,
+        to: S.gmail.to || S.gmail.addr,
+
+        applicantName: 'Test User',
+        jobTitle: 'Software Engineer',
+        company: 'ApplyFlow Test',
+        portal: 'Manual Test',
+        jobUrl: 'https://example.com/job',
+        location: 'Remote',
+        appliedAt: new Date().toLocaleString(),
+
+        skills: 'JavaScript, React',
+        experience: '2 Years'
+      })
     });
-    if (res.ok) showGmailStatus('✓ Test email sent! Check your inbox.', 'green');
-    else        showGmailStatus('Failed to send. Check your credentials and backend URL.', 'red');
-  } catch(e) {
-    showGmailStatus('Cannot reach backend. Is the server running at ' + S.gmail.backendUrl + '?', 'red');
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showGmailStatus('✓ Test email sent! Check your inbox.', 'green');
+      console.log(data);
+    } else {
+      showGmailStatus(data.error || 'Failed to send email', 'red');
+      console.error(data);
+    }
+
+  } catch (e) {
+    console.error(e);
+    showGmailStatus('Cannot reach backend server', 'red');
   }
 }
 function showGmailStatus(msg, type) {

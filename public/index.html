@@ -611,7 +611,7 @@ if (!S.langs)        S.langs = [];
 if (!S.experience)   S.experience = [];
 if (!S.education)    S.education = [];
 if (!S.applications) S.applications = [];
-if (!S.config)       S.config = { gmail: '', pass: '', server: 'http://localhost:3001', notify: true };
+if (!S.config)       S.config = { gmail: '', pass: '', server: 'https://applyflow-production-df0d.up.railway.app', notify: true };
 if (!S.notifs)       S.notifs = [];
 
 function persist() { localStorage.setItem('applyflow_v2', JSON.stringify(S)); updateDashboard(); }
@@ -1076,7 +1076,8 @@ function loadSettings() {
   const c = S.config;
   document.getElementById('cfg-gmail').value  = c.gmail  || '';
   document.getElementById('cfg-pass').value   = c.pass   || '';
-  document.getElementById('cfg-server').value = c.server || 'http://localhost:3001';
+  document.getElementById('cfg-server').value =
+  c.server || 'https://applyflow-production-df0d.up.railway.app';
   checkServerStatus();
 }
 function saveGmailConfig() {
