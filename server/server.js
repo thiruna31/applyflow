@@ -24,10 +24,25 @@ app.use(cors({ origin: '*' }));          // Allow your frontend domain
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public'))); // Serve frontend
 
+
 // ── Health Check ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0', time: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    version: '1.0.0',
+    time: new Date().toISOString()
+  });
 });
+
+// ── Root Route (Railway Test) ────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'ApplyFlow Backend Running',
+    health: '/api/health'
+  });
+});
+
 
 // ── Gmail Notification ────────────────────────────────────────
 app.post('/api/notify', async (req, res) => {
@@ -197,9 +212,9 @@ function buildEmailTemplate({ applicantName, jobTitle, company, portal, jobUrl, 
 }
 
 // ── Start ─────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 ApplyFlow Backend running on http://localhost:${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/api/health`);
-  console.log(`   Notify: POST http://localhost:${PORT}/api/notify`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 ApplyFlow Backend running on port ${PORT}`);
+  console.log(`   Health: /api/health`);
+  console.log(`   Notify: POST /api/notify`);
   console.log('\nReady to send Gmail notifications!\n');
 });
