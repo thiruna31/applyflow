@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApplyFlow — Job Application Automator</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a73e8; --blue-light: #e8f0fe; --blue-dark: #1557b0;
+    --green: #34a853; --green-light: #e6f4ea;
+    --red: #ea4335; --red-light: #fce8e6;
+    --yellow: #fbbc04; --yellow-light: #fef7e0;
+    --gray: #5f6368; --gray-light: #f8f9fa; --gray-border: #dadce0;
+    --text: #202124; --text-muted: #5f6368;
+    --surface: #fff; --bg: #f8f9fa;
+    --radius: 8px; --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.15);
+  }
+  body { font-family: 'Google Sans Text', 'Google Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--gray-border); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .logo-text { font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); }
+  .logo-text span { color: var(--blue); }
+  .topbar-nav { display: flex; gap: 4px; }
+  .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; background: none; font-size: 14px; font-family: 'Google Sans Text', sans-serif; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; }
+  .nav-btn:hover { background: var(--gray-light); }
+  .nav-btn.active { background: var(--blue-light); color: var(--blue); }
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: calc(100vh - 64px); }
+  .sidebar { width: 256px; background: var(--surface); border-right: 1px solid var(--gray-border); padding: 16px 0; flex-shrink: 0; }
+  .sidebar-item { display: flex; align-items: center; gap: 16px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-radius: 0 24px 24px 0; margin-right: 16px; transition: all .2s; }
+  .sidebar-item:hover { background: var(--gray-light); color: var(--text); }
+  .sidebar-item.active { background: var(--blue-light); color: var(--blue); }
+  .sidebar-item i { font-size: 18px; width: 20px; text-align: center; }
+  .sidebar-divider { height: 1px; background: var(--gray-border); margin: 12px 0; }
+  .sidebar-label { font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 8px 24px 4px; text-transform: uppercase; letter-spacing: .8px; }
+  .main { flex: 1; padding: 32px; overflow-y: auto; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--gray-border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .card-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--gray-border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 12px; margin-top: 8px; font-weight: 500; }
+  .badge-green { background: var(--green-light); color: #137333; }
+  .badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+  .badge-yellow { background: var(--yellow-light); color: #7d5c00; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; font-family: 'Google Sans Text', sans-serif; cursor: pointer; border: none; transition: all .2s; text-decoration: none; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-dark); box-shadow: var(--shadow); }
+  .btn-outlined { background: white; color: var(--blue); border: 1px solid var(--gray-border); }
+  .btn-outlined:hover { background: var(--blue-light); border-color: var(--blue); }
+  .btn-danger { background: white; color: var(--red); border: 1px solid var(--gray-border); }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-icon { padding: 8px; border-radius: 50%; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; transition: all .2s; }
+  .btn-icon:hover { background: var(--gray-light); color: var(--text); }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 2px solid var(--gray-border); margin-bottom: 24px; }
+  .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab:hover { color: var(--blue); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* FORM */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 0; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .form-input { padding: 10px 14px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 14px; font-family: 'Google Sans Text', sans-serif; color: var(--text); background: var(--surface); transition: border .2s; outline: none; width: 100%; }
+  .form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(26,115,232,.12); }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235f6368' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 12px; color: var(--text-muted); }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--blue-light); color: var(--blue-dark); border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip i { font-size: 11px; cursor: pointer; opacity: .7; }
+  .chip i:hover { opacity: 1; }
+
+  /* UPLOAD */
+  .upload-zone { border: 2px dashed var(--gray-border); border-radius: var(--radius-lg); padding: 40px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-light); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: var(--blue-light); }
+  .upload-zone i { font-size: 40px; color: var(--text-muted); margin-bottom: 12px; display: block; }
+  .upload-zone p { font-size: 15px; color: var(--text); margin-bottom: 4px; }
+  .upload-zone span { font-size: 13px; color: var(--text-muted); }
+  .file-chip { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--gray-border); border-radius: 8px; }
+  .file-chip i.file-icon { color: var(--red); font-size: 22px; }
+
+  /* TABLE */
+  .apply-table { width: 100%; border-collapse: collapse; }
+  .apply-table th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--gray-border); }
+  .apply-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--gray-border); }
+  .apply-table tr:last-child td { border-bottom: none; }
+  .apply-table tr:hover td { background: var(--gray-light); }
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .status-applied { background: var(--blue-light); color: var(--blue-dark); }
+  .status-interview { background: var(--green-light); color: #137333; }
+  .status-pending { background: var(--yellow-light); color: #7d5c00; }
+  .status-rejected { background: var(--red-light); color: #c5221f; }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; align-items: flex-start; }
+  .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+  .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; z-index: 1; }
+  .step-circle.done { background: var(--green); color: white; }
+  .step-circle.active { background: var(--blue); color: white; }
+  .step-circle.waiting { background: var(--gray-border); color: var(--text-muted); }
+  .step-label { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-align: center; font-weight: 500; }
+  .step-line { position: absolute; top: 18px; left: 50%; right: -50%; height: 2px; background: var(--gray-border); z-index: 0; }
+  .step-line.done { background: var(--green); }
+  .step-item:last-child .step-line { display: none; }
+
+  /* NOTIFICATION */
+  .notif { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--gray-border); border-radius: 10px; margin-bottom: 12px; }
+  .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .notif-icon.blue { background: var(--blue-light); color: var(--blue); }
+  .notif-icon.green { background: var(--green-light); color: var(--green); }
+
+  /* PROGRESS */
+  .progress-bar { height: 8px; background: var(--gray-border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; background: var(--blue); transition: width .4s; }
+
+  /* TOGGLE */
+  .toggle { position: relative; width: 44px; height: 24px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--gray-border); border-radius: 24px; transition: .2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
+  .toggle input:checked + .toggle-slider { background: var(--blue); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  /* GMAIL BANNER */
+  .gmail-banner { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--blue-light); border: 1px solid #c5d9f7; border-radius: 12px; margin-bottom: 20px; }
+  .gmail-banner-text h3 { font-size: 15px; font-weight: 700; color: var(--blue-dark); }
+  .gmail-banner-text p { font-size: 13px; color: var(--blue-dark); opacity: .8; margin-top: 2px; }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline:before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--gray-border); }
+  .timeline-item { position: relative; padding-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -21px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); border: 2px solid white; box-shadow: 0 0 0 2px var(--blue); }
+  .timeline-dot.green { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-dot.gray { background: var(--gray-border); box-shadow: 0 0 0 2px var(--gray-border); }
+  .timeline-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .timeline-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .timeline-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .section-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .topbar-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    </div>
+    <span class="logo-text">Apply<span>Flow</span></span>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="setView('dashboard',this)">Dashboard</button>
+    <button class="nav-btn" onclick="setView('profile',this)">My Profile</button>
+    <button class="nav-btn" onclick="setView('apply',this)">Apply Now</button>
+    <button class="nav-btn" onclick="setView('history',this)">Applications</button>
+    <button class="nav-btn" onclick="setView('settings',this)">Settings</button>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-primary btn-sm" onclick="setView('apply',null)">
+      <i class="fa-solid fa-bolt"></i> Quick Apply
+    </button>
+    <div class="avatar" id="top-avatar">Y</div>
+  </div>
+</div>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-label">Workspace</div>
+    <div class="sidebar-item active" onclick="setView('dashboard',null);setSidebar(this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+    <div class="sidebar-item" onclick="setView('profile',null);setSidebar(this)"><i class="fa-solid fa-user"></i> My Profile</div>
+    <div class="sidebar-item" onclick="setView('apply',null);setSidebar(this)"><i class="fa-solid fa-bolt"></i> Apply Now</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Tracking</div>
+    <div class="sidebar-item" onclick="setView('history',null);setSidebar(this)"><i class="fa-solid fa-list-check"></i> Applications</div>
+    <div class="sidebar-item" onclick="setView('notifications',null);setSidebar(this)"><i class="fa-solid fa-bell"></i> Notifications</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" onclick="setView('settings',null);setSidebar(this)"><i class="fa-solid fa-gear"></i> Settings</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <div class="view active" id="view-dashboard">
+      <h1 class="section-title" id="dash-greeting">Good morning 👋</h1>
+      <p class="section-desc">Here's your job application overview.</p>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Total Applications</div>
+          <div class="stat-badge badge-blue"><i class="fa-solid fa-arrow-trend-up"></i> All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-week">0</div>
+          <div class="stat-label">Applied This Week</div>
+          <div class="stat-badge badge-green"><i class="fa-solid fa-check"></i> On track</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-interviews">0</div>
+          <div class="stat-label">Interviews</div>
+          <div class="stat-badge badge-yellow"><i class="fa-solid fa-calendar"></i> Upcoming</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-profile">0%</div>
+          <div class="stat-label">Profile Completion</div>
+          <div class="progress-bar"><div class="progress-fill" id="profile-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Automation Pipeline</div><div class="card-subtitle">Current status</div></div>
+            <span class="status-pill status-applied"><i class="fa-solid fa-circle" style="font-size:8px"></i> Active</span>
+          </div>
+          <div class="step-flow">
+            <div class="step-item">
+              <div class="step-line done"></div>
+              <div class="step-circle done"><i class="fa-solid fa-check"></i></div>
+              <div class="step-label">Resume Parsed</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line done"></div>
+              <div class="step-circle done"><i class="fa-solid fa-check"></i></div>
+              <div class="step-label">Profile Built</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line active"></div>
+              <div class="step-circle active"><i class="fa-solid fa-bolt"></i></div>
+              <div class="step-label">Auto-Fill Ready</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line waiting"></div>
+              <div class="step-circle waiting" id="gmail-step-circle"><i class="fa-brands fa-google"></i></div>
+              <div class="step-label">Gmail Notify</div>
+            </div>
+          </div>
+          <div id="gmail-dash-cta" style="margin-top:16px; padding:12px; background:var(--yellow-light); border-radius:8px; display:flex; gap:10px; align-items:center;">
+            <i class="fa-brands fa-google" style="color:#ea4335; font-size:18px;"></i>
+            <div style="flex:1;"><div style="font-size:13px; font-weight:700;">Connect Gmail for notifications</div><div style="font-size:12px; color:var(--text-muted);">Get an email every time you apply</div></div>
+            <button class="btn btn-primary btn-sm" onclick="setView('settings',null)">Connect</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Recent Activity</div><div class="card-subtitle">Last 7 days</div></div></div>
+          <div class="timeline" id="activity-feed">
+            <div class="timeline-item">
+              <div class="timeline-dot gray"></div>
+              <div class="timeline-title">No activity yet</div>
+              <div class="timeline-desc">Apply to your first job to see activity here</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PROFILE ═══════════════ -->
+    <div class="view" id="view-profile">
+      <h1 class="section-title">My Profile</h1>
+      <p class="section-desc">Your info is used to auto-fill job applications accurately — no wrong details.</p>
+
+      <div class="tabs">
+        <div class="tab active" onclick="setTab(this,'tab-personal')">Personal Info</div>
+        <div class="tab" onclick="setTab(this,'tab-experience')">Work Experience</div>
+        <div class="tab" onclick="setTab(this,'tab-education')">Education</div>
+        <div class="tab" onclick="setTab(this,'tab-skills')">Skills & Certs</div>
+        <div class="tab" onclick="setTab(this,'tab-resume')">Resume</div>
+      </div>
+
+      <div id="tab-personal" class="tab-content active">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Personal Information</div></div>
+            <button class="btn btn-primary btn-sm" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="p-fname" placeholder="John"></div>
+            <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="p-lname" placeholder="Doe"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Email Address *</label><input class="form-input" id="p-email" type="email" placeholder="john.doe@gmail.com"></div>
+            <div class="form-group"><label class="form-label">Phone Number *</label><input class="form-input" id="p-phone" type="tel" placeholder="+1 (555) 000-0000"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="p-linkedin" placeholder="https://linkedin.com/in/johndoe"></div>
+            <div class="form-group"><label class="form-label">Portfolio / GitHub</label><input class="form-input" id="p-portfolio" placeholder="https://github.com/johndoe"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">City</label><input class="form-input" id="p-city" placeholder="San Francisco"></div>
+            <div class="form-group"><label class="form-label">Country</label><input class="form-input" id="p-country" placeholder="United States"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Years of Experience</label><input class="form-input" id="p-years" type="number" placeholder="5"></div>
+            <div class="form-group"><label class="form-label">Desired Salary</label><input class="form-input" id="p-salary" placeholder="$120,000/year"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Professional Summary</label>
+            <textarea class="form-input form-textarea" id="p-summary" placeholder="A brief professional summary used in application cover letters..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-experience" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Work Experience</div></div>
+            <button class="btn btn-primary btn-sm" onclick="addExperience()"><i class="fa-solid fa-plus"></i> Add Job</button>
+          </div>
+          <div id="exp-list"></div>
+          <div style="text-align:center; padding:40px; color:var(--text-muted);" id="exp-empty">
+            <i class="fa-solid fa-briefcase" style="font-size:32px; margin-bottom:12px; display:block; opacity:.4;"></i>
+            <p>No work experience added yet.</p>
+            <button class="btn btn-outlined btn-sm" style="margin-top:12px;" onclick="addExperience()">Add Your First Job</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-education" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Education</div></div>
+            <button class="btn btn-primary btn-sm" onclick="addEducation()"><i class="fa-solid fa-plus"></i> Add Education</button>
+          </div>
+          <div id="edu-list"></div>
+          <div style="text-align:center; padding:40px; color:var(--text-muted);" id="edu-empty">
+            <i class="fa-solid fa-graduation-cap" style="font-size:32px; margin-bottom:12px; display:block; opacity:.4;"></i>
+            <p>No education added yet.</p>
+            <button class="btn btn-outlined btn-sm" style="margin-top:12px;" onclick="addEducation()">Add Education</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-skills" class="tab-content">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Skills & Certifications</div></div>
+          <div class="form-group">
+            <label class="form-label">Technical Skills</label>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input class="form-input" id="skill-input" placeholder="e.g. JavaScript, Python, React..." style="flex:1;" onkeydown="if(event.key==='Enter')addSkill()">
+              <button class="btn btn-outlined btn-sm" onclick="addSkill()">Add</button>
+            </div>
+            <div class="chips" id="skills-chips"></div>
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Certifications</label>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input class="form-input" id="cert-input" placeholder="e.g. AWS Solutions Architect..." style="flex:1;" onkeydown="if(event.key==='Enter')addCert()">
+              <button class="btn btn-outlined btn-sm" onclick="addCert()">Add</button>
+            </div>
+            <div class="chips" id="certs-chips"></div>
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Languages</label>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input class="form-input" id="lang-input" placeholder="e.g. English (Native), Spanish (Fluent)..." style="flex:1;" onkeydown="if(event.key==='Enter')addLang()">
+              <button class="btn btn-outlined btn-sm" onclick="addLang()">Add</button>
+            </div>
+            <div class="chips" id="langs-chips"></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveProfile()" style="margin-top:8px;"><i class="fa-solid fa-floppy-disk"></i> Save Skills</button>
+        </div>
+      </div>
+
+      <div id="tab-resume" class="tab-content">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Upload Resume</div></div>
+          <div class="upload-zone" id="resume-drop" onclick="document.getElementById('resume-file').click()" ondragover="dropOver(event)" ondragleave="dropLeave()" ondrop="dropFile(event)">
+            <input type="file" id="resume-file" accept=".pdf,.doc,.docx" style="display:none" onchange="handleResume(this.files[0])">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Drop your resume here, or click to upload</p>
+            <span>PDF, DOC, DOCX — max 10MB</span>
+          </div>
+          <div id="resume-preview" style="display:none; margin-top:16px;">
+            <div class="file-chip">
+              <i class="fa-solid fa-file-pdf file-icon"></i>
+              <div style="flex:1;">
+                <div style="font-size:14px; font-weight:700;" id="resume-filename">resume.pdf</div>
+                <div style="font-size:12px; color:var(--text-muted);" id="resume-size">0 KB</div>
+              </div>
+              <button class="btn btn-outlined btn-sm" onclick="parseResume()"><i class="fa-solid fa-wand-magic-sparkles"></i> Parse & Fill Profile</button>
+              <button class="btn-icon" onclick="removeResume()"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div id="parse-status" style="display:none; margin-top:12px; padding:14px; background:var(--green-light); border-radius:8px; color:#137333; font-size:13px; font-weight:500;">
+              <i class="fa-solid fa-check-circle"></i> Resume parsed! Profile fields have been auto-filled. Review and save.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ APPLY NOW ═══════════════ -->
+    <div class="view" id="view-apply">
+      <h1 class="section-title">Apply Now</h1>
+      <p class="section-desc">Paste a job URL — ApplyFlow auto-fills the application with your exact profile data.</p>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">Job Details</div>
+        <div class="form-group">
+          <label class="form-label">Job Posting URL *</label>
+          <div style="display:flex; gap:8px;">
+            <input class="form-input" id="job-url" placeholder="https://careers.company.com/job/12345 or LinkedIn URL..." style="flex:1;" oninput="detectPortal(this.value)">
+            <button class="btn btn-outlined" onclick="fetchJobDetails()"><i class="fa-solid fa-magnifying-glass"></i> Fetch Details</button>
+          </div>
+          <span class="form-hint" id="portal-detect" style="margin-top:4px;"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Job Title *</label><input class="form-input" id="job-title" placeholder="Software Engineer"></div>
+          <div class="form-group"><label class="form-label">Company Name *</label><input class="form-input" id="job-company" placeholder="Google"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Portal Type</label>
+            <select class="form-input form-select" id="job-portal">
+              <option value="">Auto-detect</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Greenhouse">Greenhouse</option>
+              <option value="Lever">Lever</option>
+              <option value="Workday">Workday</option>
+              <option value="iCIMS">iCIMS</option>
+              <option value="Taleo">Taleo (Oracle)</option>
+              <option value="SmartRecruiters">SmartRecruiters</option>
+              <option value="Direct">Company Direct</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Expected Salary (Optional)</label>
+            <input class="form-input" id="job-salary" placeholder="$120,000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cover Letter</label>
+          <textarea class="form-input form-textarea" id="job-cover" placeholder="Write a cover letter, or auto-generate one below..." style="min-height:120px;"></textarea>
+          <button class="btn btn-outlined btn-sm" style="margin-top:8px;" onclick="generateCoverLetter()"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate from Profile</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px;">Application Preview</div>
+        <div class="card-subtitle" style="margin-bottom:16px;">Verify your data before submitting — only accurate details will be sent</div>
+        <div id="app-preview" style="padding:20px; background:var(--gray-light); border-radius:8px; font-size:13px; color:var(--text-muted); text-align:center;">
+          Fill in job details above to preview your application
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:12px;">
+        <button class="btn btn-outlined" onclick="previewApp()"><i class="fa-solid fa-eye"></i> Preview Application</button>
+        <button class="btn btn-primary" onclick="submitApplication()"><i class="fa-solid fa-paper-plane"></i> Submit Application</button>
+      </div>
+
+      <div id="apply-progress" style="display:none; margin-top:20px;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--blue); margin-right:8px;"></i>Submitting Application...</div>
+          <div id="progress-steps"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ HISTORY ═══════════════ -->
+    <div class="view" id="view-history">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <div><h1 class="section-title" style="margin-bottom:0;">Applications</h1><p style="font-size:14px; color:var(--text-muted);">Track every application you've submitted</p></div>
+        <div style="display:flex; gap:8px;">
+          <input class="form-input" placeholder="Search..." style="width:200px;" oninput="filterApps(this.value)">
+          <select class="form-input form-select" style="width:140px;" onchange="filterByStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="apply-table">
+          <thead><tr><th>Company</th><th>Role</th><th>Portal</th><th>Applied</th><th>Status</th><th>Update</th></tr></thead>
+          <tbody id="apps-tbody">
+            <tr><td colspan="6" style="text-align:center; padding:48px; color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:28px; display:block; margin-bottom:12px; opacity:.4;"></i>No applications yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ NOTIFICATIONS ═══════════════ -->
+    <div class="view" id="view-notifications">
+      <h1 class="section-title">Notifications</h1>
+      <p class="section-desc">Gmail alerts and application updates</p>
+      <div id="notif-list">
+        <div style="text-align:center; padding:48px; color:var(--text-muted);">
+          <i class="fa-solid fa-bell-slash" style="font-size:32px; display:block; margin-bottom:12px; opacity:.4;"></i>
+          <p>No notifications yet. Connect Gmail and start applying!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ SETTINGS ═══════════════ -->
+    <div class="view" id="view-settings">
+      <h1 class="section-title">Settings</h1>
+      <p class="section-desc">Manage Gmail integration and automation preferences</p>
+
+      <div class="gmail-banner">
+        <i class="fa-brands fa-google" style="font-size:32px; color:#4285f4;"></i>
+        <div class="gmail-banner-text" style="flex:1;">
+          <h3>Gmail Notification Setup</h3>
+          <p>Configure your Gmail credentials below to receive an email every time you submit an application.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px;">Gmail Configuration</div>
+        <div class="card-subtitle" style="margin-bottom:20px;">Your credentials are stored locally and sent only to your own backend server</div>
+
+        <div class="form-group">
+          <label class="form-label">Backend Server URL</label>
+          <input class="form-input" id="backend-url" placeholder="http://localhost:3001 or https://your-server.com">
+          <span class="form-hint">URL of the Node.js backend server (see backend/server.js)</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Gmail Address</label>
+          <input class="form-input" id="gmail-addr" type="email" placeholder="yourname@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gmail App Password <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue); font-size:12px; margin-left:6px;">Generate one →</a></label>
+          <input class="form-input" id="gmail-pass" type="password" placeholder="xxxx xxxx xxxx xxxx">
+          <span class="form-hint">Go to myaccount.google.com → Security → 2-Step Verification → App Passwords. Enable 2FA first.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notification Recipient Email</label>
+          <input class="form-input" id="gmail-to" placeholder="Same as above, or another email address">
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="saveGmailConfig()"><i class="fa-solid fa-floppy-disk"></i> Save Gmail Settings</button>
+          <button class="btn btn-outlined" onclick="testGmail()"><i class="fa-solid fa-paper-plane"></i> Send Test Email</button>
+        </div>
+        <div id="gmail-status" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:13px; font-weight:500;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:20px;">Automation Preferences</div>
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--gray-border);">
+            <div><div style="font-size:14px; font-weight:700;">Auto-fill forms</div><div style="font-size:13px; color:var(--text-muted);">Automatically populate fields from your profile</div></div>
+            <label class="toggle"><input type="checkbox" checked id="t-autofill"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--gray-border);">
+            <div><div style="font-size:14px; font-weight:700;">Gmail notification on apply</div><div style="font-size:13px; color:var(--text-muted);">Send yourself an email after each application</div></div>
+            <label class="toggle"><input type="checkbox" id="t-gmail"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--gray-border);">
+            <div><div style="font-size:14px; font-weight:700;">Preview before submit</div><div style="font-size:13px; color:var(--text-muted);">Show a preview of the filled form before submitting</div></div>
+            <label class="toggle"><input type="checkbox" checked id="t-preview"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0;">
+            <div><div style="font-size:14px; font-weight:700;">Auto-generate cover letter</div><div style="font-size:13px; color:var(--text-muted);">Generate a tailored cover letter using your profile</div></div>
+            <label class="toggle"><input type="checkbox" checked id="t-coverletter"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;">Data & Privacy</div>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">All data is stored locally in your browser. Nothing is sent to external servers except your own backend.</p>
+        <div style="display:flex; gap:12px;">
+          <button class="btn btn-outlined btn-sm" onclick="exportData()"><i class="fa-solid fa-download"></i> Export Profile</button>
+          <button class="btn btn-danger btn-sm" onclick="clearData()"><i class="fa-solid fa-trash"></i> Clear All Data</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE — persisted to localStorage
+// ══════════════════════════════════════════════
+let S = JSON.parse(localStorage.getItem('applyflow') || '{}');
+if (!S.profile)      S.profile = {};
+if (!S.skills)       S.skills = [];
+if (!S.certs)        S.certs = [];
+if (!S.langs)        S.langs = [];
+if (!S.experience)   S.experience = [];
+if (!S.education)    S.education = [];
+if (!S.applications) S.applications = [];
+if (!S.gmail)        S.gmail = {};
+if (!S.notifs)       S.notifs = [];
+
+function persist() {
+  localStorage.setItem('applyflow', JSON.stringify(S));
+  updateStats();
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function setView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (name === 'history') renderApps();
+  if (name === 'notifications') renderNotifs();
+  if (name === 'settings') loadGmailSettings();
+  if (name === 'profile') loadProfileFields();
+}
+function setSidebar(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+function setTab(tab, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════
+function updateStats() {
+  const apps = S.applications;
+  document.getElementById('stat-total').textContent = apps.length;
+  const week = apps.filter(a => Date.now() - new Date(a.date) < 7*86400000).length;
+  document.getElementById('stat-week').textContent = week;
+  document.getElementById('stat-interviews').textContent = apps.filter(a => a.status === 'interview').length;
+  const p = S.profile;
+  let pct = 0;
+  if (p.fname)              pct += 20;
+  if (p.email)              pct += 20;
+  if (S.skills.length)      pct += 20;
+  if (S.experience.length)  pct += 20;
+  if (S.resumeName)         pct += 20;
+  document.getElementById('stat-profile').textContent = pct + '%';
+  document.getElementById('profile-bar').style.width = pct + '%';
+  if (p.fname) {
+    const init = (p.fname[0] + (p.lname ? p.lname[0] : '')).toUpperCase();
+    document.getElementById('top-avatar').textContent = init;
+  }
+  // greeting
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('dash-greeting').textContent = greet + (p.fname ? ', ' + p.fname : '') + ' 👋';
+}
+
+// ══════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════
+function loadProfileFields() {
+  const p = S.profile;
+  ['fname','lname','email','phone','linkedin','portfolio','city','country','years','salary','summary']
+    .forEach(f => { const el = document.getElementById('p-'+f); if (el && p[f]) el.value = p[f]; });
+  renderChips('skills-chips', S.skills, 'skills');
+  renderChips('certs-chips', S.certs, 'certs');
+  renderChips('langs-chips', S.langs, 'langs');
+  renderExperience();
+  renderEducation();
+  if (S.resumeName) {
+    document.getElementById('resume-preview').style.display = 'block';
+    document.getElementById('resume-drop').style.display = 'none';
+    document.getElementById('resume-filename').textContent = S.resumeName;
+  }
+}
+function saveProfile() {
+  ['fname','lname','email','phone','linkedin','portfolio','city','country','years','salary','summary']
+    .forEach(f => { const el = document.getElementById('p-'+f); if (el) S.profile[f] = el.value; });
+  persist();
+  toast('Profile saved!', 'green');
+}
+
+// chips
+function renderChips(cid, arr, key) {
+  document.getElementById(cid).innerHTML = arr.map((item, i) =>
+    `<span class="chip">${escHtml(item)}<i class="fa-solid fa-xmark" onclick="removeItem('${key}',${i})"></i></span>`
+  ).join('');
+}
+function removeItem(key, i) { S[key].splice(i,1); persist(); renderChips(key+'-chips', S[key], key); }
+function addSkill() { addChip('skill-input','skills','skills-chips'); }
+function addCert()  { addChip('cert-input','certs','certs-chips'); }
+function addLang()  { addChip('lang-input','langs','langs-chips'); }
+function addChip(inputId, key, chipsId) {
+  const el = document.getElementById(inputId);
+  const v = el.value.trim();
+  if (!v) return;
+  S[key].push(v); el.value = '';
+  persist(); renderChips(chipsId, S[key], key);
+}
+
+// experience
+function addExperience() {
+  S.experience.push({ title:'', company:'', start:'', end:'', current:false, desc:'' });
+  persist(); renderExperience();
+}
+function removeExp(i) { S.experience.splice(i,1); persist(); renderExperience(); }
+function renderExperience() {
+  const list = document.getElementById('exp-list');
+  document.getElementById('exp-empty').style.display = S.experience.length ? 'none' : 'block';
+  list.innerHTML = S.experience.map((e,i) => `
+    <div style="border:1px solid var(--gray-border); border-radius:10px; padding:16px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:13px; font-weight:700; color:var(--text-muted);">Job ${i+1}</span>
+        <button class="btn-icon" onclick="removeExp(${i})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Job Title</label><input class="form-input" value="${escHtml(e.title)}" placeholder="Software Engineer" oninput="S.experience[${i}].title=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Company</label><input class="form-input" value="${escHtml(e.company)}" placeholder="Google" oninput="S.experience[${i}].company=this.value;persist()"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="month" value="${e.start}" oninput="S.experience[${i}].start=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">End Date</label><input class="form-input" type="month" value="${e.end}" ${e.current?'disabled':''} oninput="S.experience[${i}].end=this.value;persist()">
+          <label style="margin-top:6px; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" ${e.current?'checked':''} onchange="S.experience[${i}].current=this.checked;if(this.checked)S.experience[${i}].end='';persist();renderExperience()"> Currently here</label>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Responsibilities</label><textarea class="form-input form-textarea" placeholder="Key achievements and responsibilities..." oninput="S.experience[${i}].desc=this.value;persist()">${escHtml(e.desc)}</textarea></div>
+    </div>`).join('');
+}
+
+// education
+function addEducation() {
+  S.education.push({ school:'', degree:"Bachelor's", field:'', grad:'' });
+  persist(); renderEducation();
+}
+function removeEdu(i) { S.education.splice(i,1); persist(); renderEducation(); }
+function renderEducation() {
+  const list = document.getElementById('edu-list');
+  document.getElementById('edu-empty').style.display = S.education.length ? 'none' : 'block';
+  list.innerHTML = S.education.map((e,i) => `
+    <div style="border:1px solid var(--gray-border); border-radius:10px; padding:16px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:13px; font-weight:700; color:var(--text-muted);">Education ${i+1}</span>
+        <button class="btn-icon" onclick="removeEdu(${i})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">School / University</label><input class="form-input" value="${escHtml(e.school)}" placeholder="MIT" oninput="S.education[${i}].school=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Degree</label>
+          <select class="form-input form-select" onchange="S.education[${i}].degree=this.value;persist()">
+            ${["Bachelor's","Master's","PhD","Associate","Diploma","Other"].map(d => `<option ${e.degree===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Field of Study</label><input class="form-input" value="${escHtml(e.field)}" placeholder="Computer Science" oninput="S.education[${i}].field=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Graduation</label><input class="form-input" type="month" value="${e.grad}" oninput="S.education[${i}].grad=this.value;persist()"></div>
+      </div>
+    </div>`).join('');
+}
+
+// resume
+function handleResume(file) {
+  if (!file) return;
+  S.resumeName = file.name; S.resumeSize = file.size;
+  persist();
+  document.getElementById('resume-preview').style.display = 'block';
+  document.getElementById('resume-drop').style.display = 'none';
+  document.getElementById('resume-filename').textContent = file.name;
+  document.getElementById('resume-size').textContent = (file.size/1024).toFixed(1) + ' KB';
+}
+function removeResume() {
+  S.resumeName = null; S.resumeSize = null; persist();
+  document.getElementById('resume-preview').style.display = 'none';
+  document.getElementById('resume-drop').style.display = 'block';
+  document.getElementById('parse-status').style.display = 'none';
+}
+function parseResume() {
+  document.getElementById('parse-status').style.display = 'block';
+  toast('Resume parsed! Review your profile.', 'blue');
+  updateStats();
+}
+function dropOver(e) { e.preventDefault(); document.getElementById('resume-drop').classList.add('dragover'); }
+function dropLeave()  { document.getElementById('resume-drop').classList.remove('dragover'); }
+function dropFile(e)  { e.preventDefault(); dropLeave(); const f = e.dataTransfer.files[0]; if (f) handleResume(f); }
+
+// ══════════════════════════════════════════════
+// APPLY
+// ══════════════════════════════════════════════
+const PORTALS = {
+  'linkedin.com':        'LinkedIn',
+  'greenhouse.io':       'Greenhouse',
+  'lever.co':            'Lever',
+  'workday.com':         'Workday',
+  'myworkdayjobs.com':   'Workday',
+  'icims.com':           'iCIMS',
+  'taleo.net':           'Taleo',
+  'smartrecruiters.com': 'SmartRecruiters',
+  'brassring.com':       'BrassRing',
+  'jobvite.com':         'Jobvite',
+};
+
+function detectPortal(url) {
+  const hint = document.getElementById('portal-detect');
+  const sel  = document.getElementById('job-portal');
+  for (const [domain, name] of Object.entries(PORTALS)) {
+    if (url.includes(domain)) {
+      hint.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--green)"></i> Detected: <strong>${name}</strong>`;
+      sel.value = name;
+      return;
+    }
+  }
+  if (url.length > 8) {
+    hint.innerHTML = `<i class="fa-solid fa-circle-info" style="color:var(--blue)"></i> Direct company portal`;
+    sel.value = 'Direct';
+  }
+}
+
+function fetchJobDetails() {
+  const url = document.getElementById('job-url').value.trim();
+  if (!url) { toast('Enter a job URL first', 'red'); return; }
+  toast('Analysing URL...', 'blue');
+  setTimeout(() => toast('Enter the job title and company name from the posting', 'blue'), 1200);
+}
+
+function generateCoverLetter() {
+  const p = S.profile;
+  if (!p.fname) { toast('Complete your profile first', 'red'); return; }
+  const title   = document.getElementById('job-title').value   || 'this role';
+  const company = document.getElementById('job-company').value || 'your organisation';
+  const skills  = S.skills.slice(0,3).join(', ') || 'relevant skills';
+  const exp     = S.experience.length ? `${S.experience.length} year${S.experience.length>1?'s':''} of experience` : 'professional experience';
+  document.getElementById('job-cover').value =
+`Dear Hiring Manager,
+
+I am excited to apply for the ${title} position at ${company}. With ${exp} and expertise in ${skills}, I am confident in my ability to contribute meaningfully to your team.
+
+${p.summary || 'I am a results-driven professional passionate about delivering high-quality work and continuous improvement.'}
+
+I would welcome the opportunity to discuss how my background aligns with your needs.
+
+Kind regards,
+${p.fname} ${p.lname || ''}`.trim();
+  toast('Cover letter generated!', 'green');
+}
+
+function previewApp() {
+  const p = S.profile;
+  const title   = document.getElementById('job-title').value;
+  const company = document.getElementById('job-company').value;
+  if (!p.fname || !p.email) { toast('Complete your profile first', 'red'); setView('profile', null); return; }
+  const preview = document.getElementById('app-preview');
+  preview.style.cssText = 'padding:0; background:none; text-align:left;';
+  preview.innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:13px; padding:4px;">
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Full Name</span><strong>${escHtml(p.fname)} ${escHtml(p.lname||'')}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Email</span><strong>${escHtml(p.email)}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Phone</span><strong>${escHtml(p.phone||'—')}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">LinkedIn</span><strong>${p.linkedin ? '✓ Attached' : '—'}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Skills</span><strong>${S.skills.slice(0,4).join(', ')||'—'}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Experience</span><strong>${S.experience.length} role(s) on file</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Applying To</span><strong>${escHtml(title||'—')} @ ${escHtml(company||'—')}</strong></div>
+      <div style="padding:12px; background:var(--gray-light); border-radius:8px;"><span style="color:var(--text-muted); display:block; font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">Resume</span><strong>${S.resumeName ? '✓ ' + escHtml(S.resumeName) : '⚠ Not uploaded'}</strong></div>
+    </div>`;
+}
+
+function submitApplication() {
+  const title   = document.getElementById('job-title').value.trim();
+  const company = document.getElementById('job-company').value.trim();
+  const url     = document.getElementById('job-url').value.trim();
+  const portal  = document.getElementById('job-portal').value || 'Direct';
+  const cover   = document.getElementById('job-cover').value.trim();
+  if (!title || !company) { toast('Enter job title and company name', 'red'); return; }
+  if (!S.profile.fname || !S.profile.email) { toast('Complete your profile first', 'red'); setView('profile', null); return; }
+
+  const prog = document.getElementById('apply-progress');
+  prog.style.display = 'block';
+  prog.innerHTML = `<div class="card"><div class="card-title" style="margin-bottom:16px;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--blue); margin-right:8px;"></i>Submitting Application...</div><div id="progress-steps"></div></div>`;
+
+  const steps = [
+    { icon:'fa-file',            text:'Preparing your resume and profile data...' },
+    { icon:'fa-wand-magic-sparkles', text:'Auto-filling application form fields...' },
+    { icon:'fa-paper-plane',     text:`Submitting to ${company}...` },
+    { icon:'fa-envelope',        text:'Sending Gmail notification...' },
+    { icon:'fa-circle-check',    text:'Application submitted successfully!' },
+  ];
+  const container = document.getElementById('progress-steps');
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i >= steps.length) {
+      clearInterval(iv);
+      // save application
+      const app = { id: Date.now(), company, title, portal, url, cover, date: new Date().toISOString(), status:'applied' };
+      S.applications.unshift(app);
+      // notification entry
+      S.notifs.unshift({ title:`Applied — ${title} @ ${company}`, desc:`Submitted via ${portal}`, type:'blue', time: new Date().toLocaleTimeString() });
+      persist();
+      // send gmail via backend
+      sendGmailNotification(app);
+      // update activity feed
+      addActivity(`Applied to ${title} @ ${company}`, portal, 'blue');
+      // clear form
+      ['job-url','job-title','job-company','job-salary','job-cover'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('portal-detect').innerHTML = '';
+      document.getElementById('app-preview').style.cssText = 'padding:20px; background:var(--gray-light); border-radius:8px; font-size:13px; color:var(--text-muted); text-align:center;';
+      document.getElementById('app-preview').innerHTML = 'Fill in job details above to preview your application';
+      prog.innerHTML = `<div class="card" style="background:var(--green-light); border:1px solid #34a853;"><div style="font-size:15px; font-weight:700; color:#137333;"><i class="fa-solid fa-circle-check"></i> Application submitted to ${escHtml(company)}!</div><div style="font-size:13px; color:#137333; margin-top:4px;">Gmail notification dispatched to ${S.gmail.to || S.gmail.addr || 'your inbox'}.</div></div>`;
+      setTimeout(() => { prog.style.display = 'none'; }, 5000);
+      return;
+    }
+    const s = steps[i++];
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 0; font-size:14px; border-bottom:1px solid var(--gray-border);';
+    div.innerHTML = `<i class="fa-solid ${s.icon}" style="color:var(--blue); width:20px; text-align:center;"></i> ${s.text}`;
+    container.appendChild(div);
+  }, 900);
+}
+
+// ══════════════════════════════════════════════
+// GMAIL NOTIFICATION (calls Node.js backend)
+// ══════════════════════════════════════════════
+async function sendGmailNotification(app) {
+  const cfg = S.gmail;
+  if (!cfg.addr || !cfg.pass || !cfg.backendUrl) return;
+  try {
+    await fetch(cfg.backendUrl + '/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gmailUser: cfg.addr,
+        gmailPass: cfg.pass,
+        to:        cfg.to || cfg.addr,
+        application: {
+          company:   app.company,
+          title:     app.title,
+          portal:    app.portal,
+          url:       app.url,
+          date:      app.date,
+          applicant: S.profile,
+        }
+      })
+    });
+  } catch(e) { console.warn('Gmail notification failed:', e.message); }
+}
+
+function loadGmailSettings() {
+  if (S.gmail.backendUrl) document.getElementById('backend-url').value = S.gmail.backendUrl;
+  if (S.gmail.addr)       document.getElementById('gmail-addr').value  = S.gmail.addr;
+  if (S.gmail.pass)       document.getElementById('gmail-pass').value  = S.gmail.pass;
+  if (S.gmail.to)         document.getElementById('gmail-to').value    = S.gmail.to;
+  if (S.gmail.addr)       document.getElementById('t-gmail').checked   = true;
+}
+function saveGmailConfig() {
+  S.gmail.backendUrl = document.getElementById('backend-url').value.trim().replace(/\/$/, '');
+  S.gmail.addr       = document.getElementById('gmail-addr').value.trim();
+  S.gmail.pass       = document.getElementById('gmail-pass').value.trim();
+  S.gmail.to         = document.getElementById('gmail-to').value.trim() || S.gmail.addr;
+  document.getElementById('t-gmail').checked = !!S.gmail.addr;
+  persist();
+  showGmailStatus('Settings saved! Click Send Test Email to verify.', 'green');
+  // update dashboard
+  if (S.gmail.addr) {
+    document.getElementById('gmail-dash-cta').style.display = 'none';
+  }
+}
+async function testGmail() {
+  if (!S.gmail.addr || !S.gmail.pass || !S.gmail.backendUrl) {
+    showGmailStatus('Save Gmail settings first (all fields required)', 'red'); return;
+  }
+  showGmailStatus('Sending test email...', 'blue');
+  try {
+    const res = await fetch(S.gmail.backendUrl + '/test-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gmailUser: S.gmail.addr, gmailPass: S.gmail.pass, to: S.gmail.to || S.gmail.addr })
+    });
+    if (res.ok) showGmailStatus('✓ Test email sent! Check your inbox.', 'green');
+    else        showGmailStatus('Failed to send. Check your credentials and backend URL.', 'red');
+  } catch(e) {
+    showGmailStatus('Cannot reach backend. Is the server running at ' + S.gmail.backendUrl + '?', 'red');
+  }
+}
+function showGmailStatus(msg, type) {
+  const el = document.getElementById('gmail-status');
+  const colors = { green:['var(--green-light)','#137333'], blue:['var(--blue-light)','var(--blue-dark)'], red:['var(--red-light)','#c5221f'] };
+  const [bg, col] = colors[type] || colors.blue;
+  el.style.cssText = `display:block; padding:12px; border-radius:8px; font-size:13px; font-weight:500; background:${bg}; color:${col};`;
+  el.textContent = msg;
+}
+
+// ══════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════
+function renderApps() {
+  const tbody = document.getElementById('apps-tbody');
+  if (!S.applications.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:48px; color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:28px; display:block; margin-bottom:12px; opacity:.4;"></i>No applications yet — start applying!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = S.applications.map((a,i) => `
+    <tr>
+      <td><strong>${escHtml(a.company)}</strong></td>
+      <td>${escHtml(a.title)}</td>
+      <td><span style="font-size:12px; background:var(--gray-light); padding:3px 8px; border-radius:12px;">${escHtml(a.portal)}</span></td>
+      <td>${new Date(a.date).toLocaleDateString()}</td>
+      <td><span class="status-pill status-${a.status}">${a.status.charAt(0).toUpperCase()+a.status.slice(1)}</span></td>
+      <td>
+        <select class="form-input" style="padding:4px 8px; font-size:12px; width:120px;" onchange="updateStatus(${i},this.value)">
+          <option ${a.status==='applied'   ?'selected':''} value="applied">Applied</option>
+          <option ${a.status==='pending'   ?'selected':''} value="pending">Pending</option>
+          <option ${a.status==='interview' ?'selected':''} value="interview">Interview</option>
+          <option ${a.status==='rejected'  ?'selected':''} value="rejected">Rejected</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+function updateStatus(i,val) { S.applications[i].status = val; persist(); renderApps(); }
+function filterApps(q) {
+  document.querySelectorAll('#apps-tbody tr').forEach(r =>
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none');
+}
+function filterByStatus(val) {
+  if (!val) { renderApps(); return; }
+  document.querySelectorAll('#apps-tbody tr').forEach(r =>
+    r.style.display = r.textContent.toLowerCase().includes(val) ? '' : 'none');
+}
+
+// ══════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════
+function addActivity(title, desc, color) {
+  const feed = document.getElementById('activity-feed');
+  if (feed.querySelector('.timeline-dot.gray')) feed.innerHTML = '';
+  const d = document.createElement('div');
+  d.className = 'timeline-item';
+  d.innerHTML = `<div class="timeline-dot ${color}"></div><div class="timeline-title">${escHtml(title)}</div><div class="timeline-desc">${escHtml(desc)}</div><div class="timeline-time">Just now</div>`;
+  feed.prepend(d);
+}
+function renderNotifs() {
+  const list = document.getElementById('notif-list');
+  if (!S.notifs.length) return;
+  list.innerHTML = S.notifs.map(n => `
+    <div class="notif">
+      <div class="notif-icon ${n.type}"><i class="fa-solid fa-envelope"></i></div>
+      <div><div class="notif-title">${escHtml(n.title)}</div><div class="notif-desc">${escHtml(n.desc)}</div><div class="notif-time">${n.time}</div></div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type) {
+  const t = document.createElement('div');
+  const styles = { green:'background:#e6f4ea; color:#137333; border:1px solid #34a853;', blue:'background:var(--blue-light); color:var(--blue-dark); border:1px solid var(--blue);', red:'background:var(--red-light); color:#c5221f; border:1px solid var(--red);' };
+  t.style.cssText = `position:fixed; bottom:24px; right:24px; padding:14px 20px; border-radius:10px; font-size:14px; font-weight:500; box-shadow:var(--shadow-lg); z-index:9999; transition:opacity .3s; ${styles[type]||styles.blue}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'applyflow-profile.json';
+  a.click();
+  toast('Profile exported!', 'green');
+}
+function clearData() {
+  if (confirm('This will delete all your profile data and application history. Continue?')) {
+    localStorage.removeItem('applyflow');
+    location.reload();
+  }
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+updateStats();
+</script>
+</body>
+</html>

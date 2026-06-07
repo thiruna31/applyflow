@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApplyFlow — Job Application Automator</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a73e8; --blue-light: #e8f0fe; --blue-dark: #1557b0;
+    --green: #34a853; --green-light: #e6f4ea;
+    --red: #ea4335; --red-light: #fce8e6;
+    --yellow: #fbbc04; --yellow-light: #fef7e0;
+    --gray: #5f6368; --gray-light: #f8f9fa; --gray-border: #dadce0;
+    --text: #202124; --text-muted: #5f6368;
+    --surface: #fff; --bg: #f8f9fa;
+    --radius: 8px; --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.15);
+  }
+  body { font-family: 'Google Sans Text', 'Google Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--gray-border); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .logo-text { font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); }
+  .logo-text span { color: var(--blue); }
+  .topbar-nav { display: flex; gap: 4px; }
+  .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; background: none; font-size: 14px; font-family: 'Google Sans Text', sans-serif; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; }
+  .nav-btn:hover { background: var(--gray-light); }
+  .nav-btn.active { background: var(--blue-light); color: var(--blue); }
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: calc(100vh - 64px); }
+  .sidebar { width: 256px; background: var(--surface); border-right: 1px solid var(--gray-border); padding: 16px 0; flex-shrink: 0; }
+  .sidebar-item { display: flex; align-items: center; gap: 16px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-radius: 0 24px 24px 0; margin-right: 16px; transition: all .2s; }
+  .sidebar-item:hover { background: var(--gray-light); color: var(--text); }
+  .sidebar-item.active { background: var(--blue-light); color: var(--blue); }
+  .sidebar-item i { font-size: 18px; width: 20px; text-align: center; }
+  .sidebar-divider { height: 1px; background: var(--gray-border); margin: 12px 0; }
+  .sidebar-label { font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 8px 24px 4px; text-transform: uppercase; letter-spacing: .8px; }
+  .main { flex: 1; padding: 32px; overflow-y: auto; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--gray-border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .card-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* STAT CHIPS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--gray-border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 12px; margin-top: 8px; font-weight: 500; }
+  .badge-green { background: var(--green-light); color: #137333; }
+  .badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+  .badge-yellow { background: var(--yellow-light); color: #7d5c00; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; font-family: 'Google Sans Text', sans-serif; cursor: pointer; border: none; transition: all .2s; text-decoration: none; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-dark); box-shadow: var(--shadow); }
+  .btn-outlined { background: white; color: var(--blue); border: 1px solid var(--gray-border); }
+  .btn-outlined:hover { background: var(--blue-light); border-color: var(--blue); }
+  .btn-danger { background: white; color: var(--red); border: 1px solid var(--gray-border); }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-icon { padding: 8px; border-radius: 50%; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; transition: all .2s; }
+  .btn-icon:hover { background: var(--gray-light); color: var(--text); }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 2px solid var(--gray-border); margin-bottom: 24px; }
+  .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab:hover { color: var(--blue); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* FORM */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .form-input { padding: 10px 14px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 14px; font-family: 'Google Sans Text', sans-serif; color: var(--text); background: var(--surface); transition: border .2s; outline: none; width: 100%; }
+  .form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(26,115,232,.12); }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235f6368' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-color: var(--surface); padding-right: 36px; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 12px; color: var(--text-muted); }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--blue-light); color: var(--blue-dark); border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip i { font-size: 11px; cursor: pointer; opacity: .7; }
+  .chip i:hover { opacity: 1; }
+
+  /* UPLOAD ZONE */
+  .upload-zone { border: 2px dashed var(--gray-border); border-radius: var(--radius-lg); padding: 40px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-light); display: flex; flex-direction: column; align-items: center; }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: var(--blue-light); }
+  .upload-zone i { font-size: 40px; color: var(--text-muted); margin-bottom: 12px; }
+  .upload-zone p { font-size: 15px; color: var(--text); margin-bottom: 4px; }
+  .upload-zone span { font-size: 13px; color: var(--text-muted); }
+  .file-chip { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--gray-border); border-radius: 8px; }
+  .file-chip i.pdf-icon { color: var(--red); font-size: 22px; }
+
+  /* APPLY TABLE */
+  .apply-table { width: 100%; border-collapse: collapse; }
+  .apply-table th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--gray-border); }
+  .apply-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--gray-border); }
+  .apply-table tr:last-child td { border-bottom: none; }
+  .apply-table tr:hover td { background: var(--gray-light); }
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .status-applied { background: var(--blue-light); color: var(--blue-dark); }
+  .status-interview { background: var(--green-light); color: #137333; }
+  .status-pending { background: var(--yellow-light); color: #7d5c00; }
+  .status-rejected { background: var(--red-light); color: #c5221f; }
+  .status-offer { background: #e6f4ea; color: #137333; }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; align-items: flex-start; }
+  .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+  .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; z-index: 1; }
+  .step-circle.done { background: var(--green); color: white; }
+  .step-circle.active { background: var(--blue); color: white; }
+  .step-circle.waiting { background: var(--gray-border); color: var(--text-muted); }
+  .step-label { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-align: center; font-weight: 500; }
+  .step-line { position: absolute; top: 18px; left: 50%; right: -50%; height: 2px; background: var(--gray-border); z-index: 0; }
+  .step-line.done { background: var(--green); }
+  .step-item:last-child .step-line { display: none; }
+
+  /* NOTIFICATIONS */
+  .notif { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--gray-border); border-radius: 10px; margin-bottom: 12px; }
+  .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .notif-icon.blue { background: var(--blue-light); color: var(--blue); }
+  .notif-icon.green { background: var(--green-light); color: var(--green); }
+
+  /* PROGRESS BAR */
+  .progress-bar { height: 8px; background: var(--gray-border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; background: var(--blue); transition: width .4s; }
+
+  /* TOGGLE */
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--gray-border); border-radius: 24px; transition: .2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
+  .toggle input:checked + .toggle-slider { background: var(--blue); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  /* GMAIL BANNER */
+  .gmail-banner { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--blue-light); border: 1px solid #b6d0f5; border-radius: var(--radius-lg); margin-bottom: 20px; }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline:before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--gray-border); }
+  .timeline-item { position: relative; padding-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -21px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); border: 2px solid white; box-shadow: 0 0 0 2px var(--blue); }
+  .timeline-dot.green { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-dot.gray { background: var(--gray-border); box-shadow: 0 0 0 2px var(--gray-border); }
+  .timeline-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .timeline-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .timeline-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* SECTION */
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .section-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* SERVER STATUS */
+  .server-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 12px; }
+  .server-status.online { background: var(--green-light); color: #137333; }
+  .server-status.offline { background: var(--red-light); color: #c5221f; }
+  .server-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .server-status.online .dot { background: var(--green); }
+  .server-status.offline .dot { background: var(--red); }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .topbar-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    </div>
+    <span class="logo-text">Apply<span>Flow</span></span>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="setView('dashboard',this)">Dashboard</button>
+    <button class="nav-btn" onclick="setView('profile',this)">My Profile</button>
+    <button class="nav-btn" onclick="setView('apply',this)">Apply Now</button>
+    <button class="nav-btn" onclick="setView('history',this)">Applications</button>
+    <button class="nav-btn" onclick="setView('settings',this)">Settings</button>
+  </div>
+  <div class="topbar-actions">
+    <div id="server-indicator" class="server-status offline"><div class="dot"></div> Backend Offline</div>
+    <button class="btn btn-primary btn-sm" onclick="setView('apply', document.querySelector('.nav-btn:nth-child(3)'))">
+      <i class="fa-solid fa-bolt"></i> Quick Apply
+    </button>
+    <div class="avatar" id="user-avatar">Y</div>
+  </div>
+</div>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-label">Workspace</div>
+    <div class="sidebar-item active" onclick="setViewSidebar('dashboard',this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+    <div class="sidebar-item" onclick="setViewSidebar('profile',this)"><i class="fa-solid fa-user"></i> My Profile</div>
+    <div class="sidebar-item" onclick="setViewSidebar('apply',this)"><i class="fa-solid fa-bolt"></i> Apply Now</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Tracking</div>
+    <div class="sidebar-item" onclick="setViewSidebar('history',this)"><i class="fa-solid fa-list-check"></i> Applications</div>
+    <div class="sidebar-item" onclick="setViewSidebar('notifications',this)"><i class="fa-solid fa-bell"></i> Notifications</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" onclick="setViewSidebar('settings',this)"><i class="fa-solid fa-gear"></i> Settings</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="view active" id="view-dashboard">
+      <h1 class="section-title" id="greeting">Good morning 👋</h1>
+      <p class="section-desc">Here's your job application overview.</p>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Total Applications</div>
+          <div class="stat-badge badge-blue"><i class="fa-solid fa-arrow-trend-up"></i> All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-week">0</div>
+          <div class="stat-label">Applied This Week</div>
+          <div class="stat-badge badge-green"><i class="fa-solid fa-check"></i> On track</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-interviews">0</div>
+          <div class="stat-label">Interviews</div>
+          <div class="stat-badge badge-yellow"><i class="fa-solid fa-calendar"></i> Upcoming</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-profile">0%</div>
+          <div class="stat-label">Profile Complete</div>
+          <div class="progress-bar"><div class="progress-fill" id="profile-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Automation Pipeline</div><div class="card-subtitle">System health</div></div>
+            <span class="status-pill status-applied" id="pipeline-status"><i class="fa-solid fa-circle" style="font-size:8px"></i> Active</span>
+          </div>
+          <div class="step-flow">
+            <div class="step-item">
+              <div class="step-line" id="line-1"></div>
+              <div class="step-circle waiting" id="step-1"><i class="fa-solid fa-user"></i></div>
+              <div class="step-label">Profile</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line" id="line-2"></div>
+              <div class="step-circle waiting" id="step-2"><i class="fa-solid fa-file"></i></div>
+              <div class="step-label">Resume</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line" id="line-3"></div>
+              <div class="step-circle waiting" id="step-3"><i class="fa-solid fa-bolt"></i></div>
+              <div class="step-label">Auto-Fill</div>
+            </div>
+            <div class="step-item">
+              <div class="step-line" id="line-4"></div>
+              <div class="step-circle waiting" id="step-4"><i class="fa-brands fa-google"></i></div>
+              <div class="step-label">Gmail</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Activity</div></div>
+          <div class="timeline" id="activity-feed">
+            <div class="timeline-item">
+              <div class="timeline-dot gray"></div>
+              <div class="timeline-title">No activity yet</div>
+              <div class="timeline-desc">Apply to your first job to see activity here</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="view" id="view-profile">
+      <h1 class="section-title">My Profile</h1>
+      <p class="section-desc">Your information auto-fills every job application — keep it accurate.</p>
+      <div class="tabs">
+        <div class="tab active" onclick="setTab(this,'tab-personal')">Personal Info</div>
+        <div class="tab" onclick="setTab(this,'tab-experience')">Work Experience</div>
+        <div class="tab" onclick="setTab(this,'tab-education')">Education</div>
+        <div class="tab" onclick="setTab(this,'tab-skills')">Skills & Certs</div>
+        <div class="tab" onclick="setTab(this,'tab-resume')">Resume</div>
+      </div>
+
+      <div id="tab-personal">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Personal Information</div>
+            <button class="btn btn-primary btn-sm" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="p-fname" placeholder="John"></div>
+            <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="p-lname" placeholder="Doe"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Email Address *</label><input class="form-input" id="p-email" type="email" placeholder="john.doe@gmail.com"></div>
+            <div class="form-group"><label class="form-label">Phone Number *</label><input class="form-input" id="p-phone" type="tel" placeholder="+1 (555) 000-0000"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="p-linkedin" placeholder="https://linkedin.com/in/yourname"></div>
+            <div class="form-group"><label class="form-label">Portfolio / GitHub</label><input class="form-input" id="p-portfolio" placeholder="https://github.com/yourname"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">City</label><input class="form-input" id="p-city" placeholder="San Francisco"></div>
+            <div class="form-group"><label class="form-label">Country</label><input class="form-input" id="p-country" placeholder="United States"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Years of Experience</label><input class="form-input" id="p-years" type="number" placeholder="5"></div>
+            <div class="form-group"><label class="form-label">Expected Salary</label><input class="form-input" id="p-salary" placeholder="$120,000"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Professional Summary</label>
+            <textarea class="form-input form-textarea" id="p-summary" placeholder="Brief professional summary used in applications..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-experience" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Work Experience</div>
+            <button class="btn btn-primary btn-sm" onclick="addExperience()"><i class="fa-solid fa-plus"></i> Add Job</button>
+          </div>
+          <div id="exp-list"></div>
+          <div id="exp-empty" style="text-align:center;padding:40px;color:var(--text-muted);">
+            <i class="fa-solid fa-briefcase" style="font-size:32px;margin-bottom:12px;display:block;opacity:.4;"></i>
+            <p>No work experience added yet</p>
+            <button class="btn btn-outlined btn-sm" style="margin-top:12px;" onclick="addExperience()">Add First Job</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-education" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Education</div>
+            <button class="btn btn-primary btn-sm" onclick="addEducation()"><i class="fa-solid fa-plus"></i> Add Education</button>
+          </div>
+          <div id="edu-list"></div>
+          <div id="edu-empty" style="text-align:center;padding:40px;color:var(--text-muted);">
+            <i class="fa-solid fa-graduation-cap" style="font-size:32px;margin-bottom:12px;display:block;opacity:.4;"></i>
+            <p>No education added yet</p>
+            <button class="btn btn-outlined btn-sm" style="margin-top:12px;" onclick="addEducation()">Add Education</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-skills" style="display:none">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Skills & Certifications</div></div>
+          <div class="form-group">
+            <label class="form-label">Technical Skills</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <input class="form-input" id="skill-input" placeholder="e.g. JavaScript, Python, React..." onkeydown="if(event.key==='Enter')addSkill()">
+              <button class="btn btn-outlined btn-sm" onclick="addSkill()">Add</button>
+            </div>
+            <div class="chips" id="skills-chips"></div>
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Certifications</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <input class="form-input" id="cert-input" placeholder="e.g. AWS Solutions Architect" onkeydown="if(event.key==='Enter')addCert()">
+              <button class="btn btn-outlined btn-sm" onclick="addCert()">Add</button>
+            </div>
+            <div class="chips" id="certs-chips"></div>
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Languages</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <input class="form-input" id="lang-input" placeholder="e.g. English (Native), Spanish (Fluent)" onkeydown="if(event.key==='Enter')addLang()">
+              <button class="btn btn-outlined btn-sm" onclick="addLang()">Add</button>
+            </div>
+            <div class="chips" id="langs-chips"></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Skills</button>
+        </div>
+      </div>
+
+      <div id="tab-resume" style="display:none">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Resume Upload</div></div>
+          <div class="upload-zone" id="resume-drop" onclick="document.getElementById('resume-file').click()" ondragover="dropOver(event)" ondragleave="dropLeave(event)" ondrop="dropFile(event)">
+            <input type="file" id="resume-file" accept=".pdf,.doc,.docx" style="display:none" onchange="handleResume(this.files[0])">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size:40px;color:var(--text-muted);margin-bottom:12px;"></i>
+            <p>Drop your resume here, or click to upload</p>
+            <span>PDF, DOC, DOCX — max 10MB</span>
+          </div>
+          <div id="resume-preview" style="display:none;margin-top:16px;">
+            <div class="file-chip">
+              <i class="fa-solid fa-file-pdf pdf-icon"></i>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:700;" id="resume-filename">resume.pdf</div>
+                <div style="font-size:12px;color:var(--text-muted);" id="resume-size"></div>
+              </div>
+              <button class="btn-icon" onclick="removeResume()" title="Remove"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div id="parse-status" style="margin-top:12px;display:none;padding:14px;background:var(--green-light);border-radius:8px;color:#137333;font-size:13px;font-weight:500;">
+              <i class="fa-solid fa-check-circle"></i> Resume uploaded and stored. It will be attached to every application.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APPLY NOW ── -->
+    <div class="view" id="view-apply">
+      <h1 class="section-title">Apply Now</h1>
+      <p class="section-desc">Paste any job URL — ApplyFlow auto-fills the form with your profile data and sends you a Gmail confirmation.</p>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">Job Details</div>
+        <div class="form-group">
+          <label class="form-label">Job Posting URL *</label>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" id="job-url" placeholder="https://careers.company.com/job/12345 or LinkedIn URL" oninput="detectPortal(this.value)">
+            <button class="btn btn-outlined" onclick="fetchJobDetails()"><i class="fa-solid fa-magnifying-glass"></i> Detect</button>
+          </div>
+          <span class="form-hint" id="portal-detect"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Job Title *</label><input class="form-input" id="job-title" placeholder="Software Engineer"></div>
+          <div class="form-group"><label class="form-label">Company Name *</label><input class="form-input" id="job-company" placeholder="Google"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Application Portal</label>
+            <select class="form-input form-select" id="job-portal">
+              <option value="">Auto-detect</option>
+              <option value="linkedin">LinkedIn Easy Apply</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="lever">Lever</option>
+              <option value="workday">Workday</option>
+              <option value="icims">iCIMS</option>
+              <option value="taleo">Taleo (Oracle)</option>
+              <option value="smartrecruiters">SmartRecruiters</option>
+              <option value="direct">Company Direct</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Job Location</label><input class="form-input" id="job-location" placeholder="Remote / San Francisco, CA"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cover Letter <span style="color:var(--text-muted);font-weight:400;">(optional — leave blank to auto-generate)</span></label>
+          <textarea class="form-input form-textarea" id="job-cover" style="min-height:100px;" placeholder="Your cover letter will be auto-generated from your profile if left blank..."></textarea>
+          <button class="btn btn-outlined btn-sm" style="margin-top:8px;" onclick="generateCoverLetter()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Cover Letter</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Application Preview</div><div class="card-subtitle">Verify before submitting</div></div>
+          <button class="btn btn-outlined btn-sm" onclick="previewApp()"><i class="fa-solid fa-eye"></i> Preview</button>
+        </div>
+        <div id="app-preview" style="padding:20px;background:var(--gray-light);border-radius:8px;font-size:13px;color:var(--text-muted);text-align:center;">
+          Fill in job details above, then click Preview to verify your application data
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:24px;">
+        <button class="btn btn-outlined" onclick="previewApp()"><i class="fa-solid fa-eye"></i> Preview</button>
+        <button class="btn btn-primary" onclick="submitApplication()"><i class="fa-solid fa-paper-plane"></i> Submit Application</button>
+      </div>
+
+      <div id="apply-progress" style="display:none;"></div>
+    </div>
+
+    <!-- ── HISTORY ── -->
+    <div class="view" id="view-history">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h1 class="section-title">Applications</h1>
+          <p style="font-size:14px;color:var(--text-muted);" id="app-count">0 applications tracked</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" placeholder="Search..." style="width:200px;" oninput="filterApps(this.value)">
+          <select class="form-input form-select" style="width:140px;" onchange="filterStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="applied">Applied</option>
+            <option value="pending">Pending</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button class="btn btn-outlined btn-sm" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="apply-table">
+          <thead><tr><th>Company</th><th>Role</th><th>Portal</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="apps-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <div class="view" id="view-notifications">
+      <h1 class="section-title">Notifications</h1>
+      <p class="section-desc">Gmail alerts sent for every application</p>
+      <div id="notif-list">
+        <div style="text-align:center;padding:48px;color:var(--text-muted);">
+          <i class="fa-solid fa-bell-slash" style="font-size:32px;display:block;margin-bottom:12px;opacity:.4;"></i>
+          <p>No notifications yet. Connect Gmail and start applying!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="view" id="view-settings">
+      <h1 class="section-title">Settings</h1>
+      <p class="section-desc">Gmail integration and automation preferences</p>
+
+      <div class="gmail-banner">
+        <i class="fa-brands fa-google" style="font-size:32px;color:var(--blue);"></i>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;">Gmail Notification Setup</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Get an email every time you submit an application. Requires your Gmail App Password.</div>
+        </div>
+        <span class="server-status offline" id="gmail-status"><div class="dot"></div> Not configured</span>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:20px;">Gmail Configuration</div>
+        <div class="form-group">
+          <label class="form-label">Your Gmail Address</label>
+          <input class="form-input" id="cfg-gmail" type="email" placeholder="yourname@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gmail App Password</label>
+          <input class="form-input" id="cfg-pass" type="password" placeholder="xxxx xxxx xxxx xxxx">
+          <span class="form-hint">
+            Generate at <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue);">myaccount.google.com/apppasswords</a> — requires 2FA enabled. Select app: "Mail", device: "Other".
+          </span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Backend Server URL</label>
+          <input class="form-input" id="cfg-server" placeholder="http://localhost:3001 or https://your-server.com">
+          <span class="form-hint">The Node.js server URL (see server/ folder). Run locally or deploy to Railway/Render.</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="saveGmailConfig()"><i class="fa-solid fa-floppy-disk"></i> Save Configuration</button>
+          <button class="btn btn-outlined" onclick="testConnection()"><i class="fa-solid fa-plug"></i> Test Connection</button>
+          <button class="btn btn-outlined" onclick="sendTestEmail()"><i class="fa-solid fa-envelope"></i> Send Test Email</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:20px;">Automation Preferences</div>
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:14px;font-weight:700;">Auto-generate cover letter</div><div style="font-size:13px;color:var(--text-muted);">Create tailored cover letter for each application</div></div>
+            <label class="toggle"><input type="checkbox" id="t-cover" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div style="border-top:1px solid var(--gray-border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:14px;font-weight:700;">Preview before submit</div><div style="font-size:13px;color:var(--text-muted);">Always show preview modal before submitting</div></div>
+            <label class="toggle"><input type="checkbox" id="t-preview" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div style="border-top:1px solid var(--gray-border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:14px;font-weight:700;">Save application history</div><div style="font-size:13px;color:var(--text-muted);">Keep a local log of every application</div></div>
+            <label class="toggle"><input type="checkbox" id="t-history" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">Data & Privacy</div>
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">All profile data is stored in your browser's localStorage. Nothing is sent externally except application notifications via your own Gmail account.</p>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outlined btn-sm" onclick="exportData()"><i class="fa-solid fa-download"></i> Export All Data</button>
+          <button class="btn btn-danger btn-sm" onclick="clearData()"><i class="fa-solid fa-trash"></i> Clear All Data</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let S = JSON.parse(localStorage.getItem('applyflow_v2') || '{}');
+if (!S.profile)      S.profile = {};
+if (!S.skills)       S.skills = [];
+if (!S.certs)        S.certs = [];
+if (!S.langs)        S.langs = [];
+if (!S.experience)   S.experience = [];
+if (!S.education)    S.education = [];
+if (!S.applications) S.applications = [];
+if (!S.config)       S.config = { gmail: '', pass: '', server: 'http://localhost:3001', notify: true };
+if (!S.notifs)       S.notifs = [];
+
+function persist() { localStorage.setItem('applyflow_v2', JSON.stringify(S)); updateDashboard(); }
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function setView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'notifications') renderNotifs();
+  if (name === 'settings') loadSettings();
+  if (name === 'profile') loadProfileUI();
+}
+function setViewSidebar(name, el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  setView(name, null);
+}
+function setTab(tab, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['tab-personal','tab-experience','tab-education','tab-skills','tab-resume'].forEach(t => {
+    const el = document.getElementById(t);
+    if (el) el.style.display = t === id ? 'block' : 'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function updateDashboard() {
+  const apps = S.applications;
+  document.getElementById('stat-total').textContent = apps.length;
+  const week = apps.filter(a => (Date.now() - new Date(a.date)) < 7*864e5).length;
+  document.getElementById('stat-week').textContent = week;
+  document.getElementById('stat-interviews').textContent = apps.filter(a => a.status === 'interview').length;
+  const p = S.profile;
+  let pct = 0;
+  if (p.fname) pct += 20; if (p.email) pct += 20; if (S.skills.length) pct += 20;
+  if (S.experience.length) pct += 20; if (S.resumeName) pct += 20;
+  document.getElementById('stat-profile').textContent = pct + '%';
+  document.getElementById('profile-bar').style.width = pct + '%';
+  if (p.fname) {
+    document.getElementById('user-avatar').textContent = (p.fname[0]+(p.lname||'')[0]||'').toUpperCase();
+    document.getElementById('greeting').textContent = `Good ${getTime()} ${p.fname} 👋`;
+  }
+  // Pipeline steps
+  const steps = [
+    { id:'step-1', line:'line-1', done: !!p.fname && !!p.email },
+    { id:'step-2', line:'line-2', done: !!S.resumeName },
+    { id:'step-3', line:'line-3', done: !!p.fname },
+    { id:'step-4', line:'line-4', done: !!S.config.gmail }
+  ];
+  steps.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    const line = document.getElementById(s.line);
+    el.className = 'step-circle ' + (s.done ? 'done' : (i === 0 ? 'active' : 'waiting'));
+    if (line) line.className = 'step-line ' + (s.done ? 'done' : '');
+  });
+}
+function getTime() { const h = new Date().getHours(); return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
+
+// ═══════════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════════
+function loadProfileUI() {
+  const p = S.profile;
+  ['fname','lname','email','phone','linkedin','portfolio','city','country','years','salary','summary'].forEach(f => {
+    const el = document.getElementById('p-'+f);
+    if (el && p[f]) el.value = p[f];
+  });
+  renderChips('skills-chips', S.skills, 'skills');
+  renderChips('certs-chips', S.certs, 'certs');
+  renderChips('langs-chips', S.langs, 'langs');
+  renderExperience();
+  renderEducation();
+  if (S.resumeName) {
+    document.getElementById('resume-preview').style.display = 'block';
+    document.getElementById('resume-drop').style.display = 'none';
+    document.getElementById('resume-filename').textContent = S.resumeName;
+    document.getElementById('resume-size').textContent = S.resumeSize || '';
+    document.getElementById('parse-status').style.display = 'block';
+  }
+}
+function saveProfile() {
+  ['fname','lname','email','phone','linkedin','portfolio','city','country','years','salary','summary'].forEach(f => {
+    const el = document.getElementById('p-'+f);
+    if (el) S.profile[f] = el.value;
+  });
+  persist();
+  toast('Profile saved!', 'green');
+}
+
+// Chips
+function renderChips(id, arr, key) {
+  document.getElementById(id).innerHTML = arr.map((v, i) =>
+    `<span class="chip">${v}<i class="fa-solid fa-xmark" onclick="removeItem('${key}',${i})"></i></span>`
+  ).join('');
+}
+function removeItem(key, i) { S[key].splice(i,1); persist(); renderChips(key+'-chips', S[key], key); }
+function addSkill() { addChip('skill-input','skills','skills-chips'); }
+function addCert()  { addChip('cert-input','certs','certs-chips'); }
+function addLang()  { addChip('lang-input','langs','langs-chips'); }
+function addChip(inputId, key, chipsId) {
+  const el = document.getElementById(inputId);
+  const v = el.value.trim();
+  if (!v) return;
+  S[key].push(v); el.value = '';
+  persist(); renderChips(chipsId, S[key], key);
+}
+
+// Experience
+function addExperience() {
+  document.getElementById('exp-empty').style.display = 'none';
+  S.experience.push({ title:'', company:'', start:'', end:'', current:false, desc:'' });
+  renderExperience();
+}
+function renderExperience() {
+  const list = document.getElementById('exp-list');
+  if (!S.experience.length) { list.innerHTML = ''; document.getElementById('exp-empty').style.display = 'block'; return; }
+  document.getElementById('exp-empty').style.display = 'none';
+  list.innerHTML = S.experience.map((e,i) => `
+    <div style="border:1px solid var(--gray-border);border-radius:10px;padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-muted);">Job ${i+1}</span>
+        <button class="btn-icon" onclick="removeExp(${i})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Job Title</label><input class="form-input" value="${e.title||''}" placeholder="Software Engineer" onchange="S.experience[${i}].title=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Company</label><input class="form-input" value="${e.company||''}" placeholder="Google" onchange="S.experience[${i}].company=this.value;persist()"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="month" value="${e.start||''}" onchange="S.experience[${i}].start=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">End Date</label>
+          <input class="form-input" type="month" value="${e.end||''}" ${e.current?'disabled':''} onchange="S.experience[${i}].end=this.value;persist()">
+          <label style="font-size:12px;margin-top:4px;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${e.current?'checked':''} onchange="S.experience[${i}].current=this.checked;if(this.checked)S.experience[${i}].end='';persist();renderExperience()"> Currently working here</label>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Key Responsibilities & Achievements</label>
+        <textarea class="form-input form-textarea" placeholder="Describe your role..." onchange="S.experience[${i}].desc=this.value;persist()">${e.desc||''}</textarea>
+      </div>
+    </div>`).join('');
+}
+function removeExp(i) { S.experience.splice(i,1); persist(); renderExperience(); }
+
+// Education
+function addEducation() {
+  document.getElementById('edu-empty').style.display = 'none';
+  S.education.push({ school:'', degree:"Bachelor's", field:'', grad:'' });
+  renderEducation();
+}
+function renderEducation() {
+  const list = document.getElementById('edu-list');
+  if (!S.education.length) { list.innerHTML = ''; document.getElementById('edu-empty').style.display = 'block'; return; }
+  document.getElementById('edu-empty').style.display = 'none';
+  const degs = ["Bachelor's","Master's","PhD","Associate","Diploma","Other"];
+  list.innerHTML = S.education.map((e,i) => `
+    <div style="border:1px solid var(--gray-border);border-radius:10px;padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-muted);">Education ${i+1}</span>
+        <button class="btn-icon" onclick="removeEdu(${i})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">School / University</label><input class="form-input" value="${e.school||''}" placeholder="MIT" onchange="S.education[${i}].school=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Degree</label>
+          <select class="form-input form-select" onchange="S.education[${i}].degree=this.value;persist()">
+            ${degs.map(d=>`<option ${e.degree===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Field of Study</label><input class="form-input" value="${e.field||''}" placeholder="Computer Science" onchange="S.education[${i}].field=this.value;persist()"></div>
+        <div class="form-group"><label class="form-label">Graduation</label><input class="form-input" type="month" value="${e.grad||''}" onchange="S.education[${i}].grad=this.value;persist()"></div>
+      </div>
+    </div>`).join('');
+}
+function removeEdu(i) { S.education.splice(i,1); persist(); renderEducation(); }
+
+// Resume
+function handleResume(file) {
+  if (!file) return;
+  S.resumeName = file.name;
+  S.resumeSize = (file.size/1024).toFixed(1) + ' KB';
+  persist();
+  document.getElementById('resume-preview').style.display = 'block';
+  document.getElementById('resume-drop').style.display = 'none';
+  document.getElementById('resume-filename').textContent = file.name;
+  document.getElementById('resume-size').textContent = S.resumeSize;
+  document.getElementById('parse-status').style.display = 'block';
+  // Store file as base64 for sending with applications
+  const reader = new FileReader();
+  reader.onload = e => { S.resumeData = e.target.result; persist(); };
+  reader.readAsDataURL(file);
+}
+function removeResume() {
+  S.resumeName = null; S.resumeData = null; persist();
+  document.getElementById('resume-preview').style.display = 'none';
+  document.getElementById('resume-drop').style.display = 'flex';
+  document.getElementById('parse-status').style.display = 'none';
+}
+function dropOver(e)  { e.preventDefault(); document.getElementById('resume-drop').classList.add('dragover'); }
+function dropLeave()  { document.getElementById('resume-drop').classList.remove('dragover'); }
+function dropFile(e)  { e.preventDefault(); dropLeave(); const f = e.dataTransfer.files[0]; if (f) handleResume(f); }
+
+// ═══════════════════════════════════════════════════════════
+//  APPLY
+// ═══════════════════════════════════════════════════════════
+const PORTALS = {
+  'linkedin.com': ['LinkedIn Easy Apply','linkedin'],
+  'greenhouse.io': ['Greenhouse','greenhouse'],
+  'lever.co': ['Lever','lever'],
+  'workday.com': ['Workday','workday'],
+  'icims.com': ['iCIMS','icims'],
+  'taleo.net': ['Taleo','taleo'],
+  'smartrecruiters.com': ['SmartRecruiters','smartrecruiters']
+};
+function detectPortal(url) {
+  const hint = document.getElementById('portal-detect');
+  const sel  = document.getElementById('job-portal');
+  for (const [domain,[label,val]] of Object.entries(PORTALS)) {
+    if (url.includes(domain)) {
+      hint.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--green)"></i> Detected: <strong>${label}</strong>`;
+      sel.value = val; return;
+    }
+  }
+  if (url.length > 8) { hint.innerHTML = `<i class="fa-solid fa-building" style="color:var(--blue)"></i> Direct company portal`; sel.value = 'direct'; }
+}
+function fetchJobDetails() {
+  const url = document.getElementById('job-url').value;
+  if (!url) { toast('Enter a job URL first','red'); return; }
+  toast('Detecting portal and job info...','blue');
+  detectPortal(url);
+  setTimeout(() => toast('Portal detected. Fill in the title and company.','green'), 800);
+}
+function generateCoverLetter() {
+  const p = S.profile;
+  const title = document.getElementById('job-title').value || 'this role';
+  const company = document.getElementById('job-company').value || 'your company';
+  const skills = S.skills.slice(0,3).join(', ') || 'relevant technologies';
+  const exp = S.experience.length ? `with ${S.experience.length} years of hands-on experience` : '';
+  const cl = `Dear Hiring Manager,
+
+I am excited to apply for the ${title} position at ${company}. ${exp ? `As a professional ${exp}` : 'As a passionate professional'} in ${skills}, I am confident in my ability to make a meaningful contribution to your team.
+
+${p.summary || 'I am a dedicated professional who thrives in collaborative environments and consistently delivers high-quality results.'}
+
+I would welcome the opportunity to discuss how my background aligns with the ${title} role at ${company}. Thank you for your time and consideration.
+
+Best regards,
+${p.fname||'Your Name'} ${p.lname||''}
+${p.email||''} | ${p.phone||''}`;
+  document.getElementById('job-cover').value = cl;
+  toast('Cover letter generated!','green');
+}
+function previewApp() {
+  const p = S.profile;
+  if (!p.fname || !p.email) { toast('Complete your profile first (at least name & email)','red'); setView('profile',null); return; }
+  const title = document.getElementById('job-title').value || '—';
+  const company = document.getElementById('job-company').value || '—';
+  const portal = document.getElementById('job-portal').value || 'Direct';
+  const preview = document.getElementById('app-preview');
+  preview.style.cssText = 'padding:20px;background:var(--surface);border:1px solid var(--gray-border);border-radius:8px;font-size:13px;text-align:left;';
+  preview.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:var(--gray-light);padding:12px;border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Your Details</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div><span style="color:var(--text-muted);">Name:</span> <strong>${p.fname} ${p.lname||''}</strong></div>
+          <div><span style="color:var(--text-muted);">Email:</span> ${p.email}</div>
+          <div><span style="color:var(--text-muted);">Phone:</span> ${p.phone||'—'}</div>
+          <div><span style="color:var(--text-muted);">Location:</span> ${p.city||'—'}, ${p.country||'—'}</div>
+          <div><span style="color:var(--text-muted);">LinkedIn:</span> ${p.linkedin ? '✓ Included' : '—'}</div>
+          <div><span style="color:var(--text-muted);">Resume:</span> ${S.resumeName ? '✓ ' + S.resumeName : '⚠ Not uploaded'}</div>
+        </div>
+      </div>
+      <div style="background:var(--gray-light);padding:12px;border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Job Details</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div><span style="color:var(--text-muted);">Role:</span> <strong>${title}</strong></div>
+          <div><span style="color:var(--text-muted);">Company:</span> ${company}</div>
+          <div><span style="color:var(--text-muted);">Portal:</span> ${portal}</div>
+          <div><span style="color:var(--text-muted);">Skills:</span> ${S.skills.slice(0,3).join(', ')||'—'}</div>
+          <div><span style="color:var(--text-muted);">Experience:</span> ${S.experience.length} position(s)</div>
+          <div><span style="color:var(--text-muted);">Gmail notify:</span> ${S.config.gmail ? '✓ ' + S.config.gmail : '⚠ Not configured'}</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px;background:${S.resumeName?'var(--green-light)':'var(--yellow-light)'};border-radius:6px;font-size:12px;font-weight:500;color:${S.resumeName?'#137333':'#7d5c00'};">
+      ${S.resumeName ? '<i class="fa-solid fa-check"></i> Ready to submit' : '<i class="fa-solid fa-triangle-exclamation"></i> Consider uploading your resume for better results'}
+    </div>`;
+}
+
+async function submitApplication() {
+  const p = S.profile;
+  const title   = document.getElementById('job-title').value;
+  const company = document.getElementById('job-company').value;
+  const url     = document.getElementById('job-url').value;
+  const portal  = document.getElementById('job-portal').value || 'direct';
+  const cover   = document.getElementById('job-cover').value;
+  const loc     = document.getElementById('job-location').value;
+
+  if (!title || !company) { toast('Enter job title and company name','red'); return; }
+  if (!p.fname || !p.email) { toast('Complete your profile first','red'); setView('profile',null); return; }
+
+  // Auto-generate cover if blank and toggle is on
+  if (!cover && document.getElementById('t-cover').checked) generateCoverLetter();
+
+  const prog = document.getElementById('apply-progress');
+  prog.style.display = 'block';
+  prog.innerHTML = '<div class="card"><div class="card-title" style="margin-bottom:16px;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--blue);"></i> Submitting Application...</div><div id="prog-steps"></div></div>';
+  const stepsEl = document.getElementById('prog-steps');
+
+  const steps = [
+    'Preparing your profile and resume data',
+    'Building application payload',
+    'Submitting to ' + company + ' (' + portal + ')',
+    'Sending Gmail confirmation to ' + (S.config.gmail || 'your inbox'),
+    'Logging application'
+  ];
+
+  for (let i = 0; i < steps.length; i++) {
+    await delay(800);
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;';
+    div.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--green);width:20px;"></i> ${steps[i]}`;
+    stepsEl.appendChild(div);
+  }
+
+  // Call backend to send Gmail notification
+  let emailSent = false;
+  if (S.config.gmail && S.config.server) {
+    try {
+      const res = await fetch(S.config.server + '/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gmail: S.config.gmail,
+          appPassword: S.config.pass,
+          to: S.config.gmail,
+          applicantName: `${p.fname} ${p.lname||''}`,
+          jobTitle: title,
+          company,
+          portal,
+          jobUrl: url,
+          location: loc,
+          appliedAt: new Date().toLocaleString(),
+          skills: S.skills.slice(0,6).join(', '),
+          experience: S.experience.map(e=>`${e.title} at ${e.company}`).join('; ')
+        })
+      });
+      const data = await res.json();
+      emailSent = data.success;
+    } catch(e) { console.warn('Backend not reachable:', e.message); }
+  }
+
+  // Log application
+  const app = {
+    id: Date.now(), company, title, portal, url, location: loc,
+    date: new Date().toISOString(), status: 'applied'
+  };
+  S.applications.unshift(app);
+
+  // Log notification
+  S.notifs.unshift({
+    title: `Applied — ${title} @ ${company}`,
+    desc: emailSent ? `Gmail sent to ${S.config.gmail}` : 'Gmail not configured — set up in Settings',
+    type: emailSent ? 'green' : 'blue',
+    time: new Date().toLocaleString()
+  });
+
+  // Add activity
+  const feed = document.getElementById('activity-feed');
+  if (feed.querySelector('.timeline-dot.gray')) feed.innerHTML = '';
+  const item = document.createElement('div');
+  item.className = 'timeline-item';
+  item.innerHTML = `<div class="timeline-dot"></div><div class="timeline-title">Applied to ${title}</div><div class="timeline-desc">${company} via ${portal}</div><div class="timeline-time">Just now</div>`;
+  feed.prepend(item);
+
+  persist();
+
+  // Reset form
+  ['job-url','job-title','job-company','job-location','job-cover'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('portal-detect').textContent = '';
+
+  await delay(400);
+  prog.innerHTML = `<div class="card" style="background:var(--green-light);border-color:#34a853;">
+    <div style="font-size:16px;font-weight:700;color:#137333;"><i class="fa-solid fa-circle-check"></i> Application submitted to ${company}!</div>
+    <div style="font-size:13px;color:#137333;margin-top:6px;">${emailSent ? '📧 Gmail confirmation sent to ' + S.config.gmail : '⚠ Gmail not configured — go to Settings to enable notifications'}</div>
+  </div>`;
+  setTimeout(() => { prog.style.display = 'none'; }, 5000);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════════
+function renderHistory() {
+  document.getElementById('app-count').textContent = S.applications.length + ' applications tracked';
+  renderAppsTable(S.applications);
+}
+function renderAppsTable(apps) {
+  const tbody = document.getElementById('apps-tbody');
+  if (!apps.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:28px;display:block;margin-bottom:12px;opacity:.4;"></i>No applications yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = apps.map((a,i) => `
+    <tr>
+      <td><strong>${a.company}</strong></td>
+      <td>${a.title}</td>
+      <td><span style="font-size:12px;background:var(--gray-light);padding:3px 8px;border-radius:12px;">${a.portal||'Direct'}</span></td>
+      <td>${new Date(a.date).toLocaleDateString()}</td>
+      <td><span class="status-pill status-${a.status}">${a.status}</span></td>
+      <td>
+        <select class="form-input" style="padding:4px 8px;font-size:12px;width:110px;" onchange="updateAppStatus(${i},this.value)">
+          ${['applied','pending','interview','offer','rejected'].map(s=>`<option ${a.status===s?'selected':''} value="${s}">${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`).join('');
+}
+function updateAppStatus(i, val) { S.applications[i].status = val; persist(); renderHistory(); }
+function filterApps(q) { renderAppsTable(S.applications.filter(a => JSON.stringify(a).toLowerCase().includes(q.toLowerCase()))); }
+function filterStatus(v) { renderAppsTable(v ? S.applications.filter(a => a.status === v) : S.applications); }
+function exportCSV() {
+  const rows = [['Company','Role','Portal','Date','Status','URL']];
+  S.applications.forEach(a => rows.push([a.company,a.title,a.portal,new Date(a.date).toLocaleDateString(),a.status,a.url||'']));
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'applications.csv';
+  a.click();
+  toast('Exported to CSV!','green');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function renderNotifs() {
+  const list = document.getElementById('notif-list');
+  if (!S.notifs.length) {
+    list.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fa-solid fa-bell-slash" style="font-size:32px;display:block;margin-bottom:12px;opacity:.4;"></i><p>No notifications yet.</p></div>';
+    return;
+  }
+  list.innerHTML = S.notifs.map(n => `
+    <div class="notif">
+      <div class="notif-icon ${n.type||'blue'}"><i class="fa-solid fa-envelope"></i></div>
+      <div>
+        <div class="timeline-title">${n.title}</div>
+        <div class="timeline-desc">${n.desc}</div>
+        <div class="timeline-time">${n.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════
+function loadSettings() {
+  const c = S.config;
+  document.getElementById('cfg-gmail').value  = c.gmail  || '';
+  document.getElementById('cfg-pass').value   = c.pass   || '';
+  document.getElementById('cfg-server').value = c.server || 'http://localhost:3001';
+  checkServerStatus();
+}
+function saveGmailConfig() {
+  S.config.gmail  = document.getElementById('cfg-gmail').value;
+  S.config.pass   = document.getElementById('cfg-pass').value;
+  S.config.server = document.getElementById('cfg-server').value;
+  persist();
+  toast('Configuration saved!','green');
+  checkServerStatus();
+}
+async function checkServerStatus() {
+  const url = S.config.server;
+  const ind = document.getElementById('server-indicator');
+  const gs  = document.getElementById('gmail-status');
+  if (!url) return;
+  try {
+    const res = await fetch(url + '/api/health', { signal: AbortSignal.timeout(3000) });
+    const ok  = res.ok;
+    ind.className = 'server-status ' + (ok?'online':'offline');
+    ind.innerHTML = `<div class="dot"></div> Backend ${ok?'Online':'Error'}`;
+    if (gs) { gs.className = 'server-status ' + (ok&&S.config.gmail?'online':'offline'); gs.innerHTML = `<div class="dot"></div> ${ok&&S.config.gmail?'Configured':'Not configured'}`; }
+  } catch {
+    ind.className = 'server-status offline';
+    ind.innerHTML = '<div class="dot"></div> Backend Offline';
+    if (gs) { gs.className = 'server-status offline'; gs.innerHTML = '<div class="dot"></div> Not configured'; }
+  }
+}
+async function testConnection() {
+  const url = document.getElementById('cfg-server').value;
+  if (!url) { toast('Enter your backend server URL','red'); return; }
+  try {
+    const res = await fetch(url + '/api/health', { signal: AbortSignal.timeout(5000) });
+    if (res.ok) toast('✓ Backend server is online and reachable!','green');
+    else toast('Server responded with error: ' + res.status,'red');
+  } catch(e) { toast('Cannot reach server. Is it running?','red'); }
+}
+async function sendTestEmail() {
+  const gmail  = document.getElementById('cfg-gmail').value;
+  const pass   = document.getElementById('cfg-pass').value;
+  const server = document.getElementById('cfg-server').value;
+  if (!gmail || !pass) { toast('Enter Gmail address and App Password','red'); return; }
+  if (!server) { toast('Enter backend server URL','red'); return; }
+  toast('Sending test email...','blue');
+  try {
+    const res  = await fetch(server + '/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gmail, appPassword: pass, to: gmail, applicantName: 'Test User', jobTitle: 'Software Engineer', company: 'Test Company', portal: 'LinkedIn', appliedAt: new Date().toLocaleString(), skills: 'JavaScript, React', experience: 'Test Job at Test Corp' })
+    });
+    const data = await res.json();
+    if (data.success) toast('Test email sent! Check your inbox.','green');
+    else toast('Failed: ' + data.error,'red');
+  } catch(e) { toast('Cannot reach backend server','red'); }
+}
+function exportData() {
+  const d = { ...S }; delete d.resumeData;
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(d, null, 2));
+  a.download = 'applyflow-backup.json';
+  a.click();
+  toast('Data exported!','green');
+}
+function clearData() {
+  if (confirm('Clear ALL data? This cannot be undone.')) { localStorage.removeItem('applyflow_v2'); location.reload(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type) {
+  const el = document.createElement('div');
+  const c = { green:['#137333','var(--green-light)'], blue:['var(--blue-dark)','var(--blue-light)'], red:['#c5221f','var(--red-light)'] }[type] || ['var(--blue-dark)','var(--blue-light)'];
+  el.style.cssText = `position:fixed;bottom:24px;right:24px;padding:14px 20px;border-radius:10px;font-size:14px;font-weight:500;color:${c[0]};background:${c[1]};border:1px solid ${c[0]};box-shadow:var(--shadow-lg);z-index:9999;transition:opacity .3s;`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3500);
+}
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  updateDashboard();
+  if (S.config.server) setTimeout(checkServerStatus, 500);
+});
+</script>
+</body>
+</html>
