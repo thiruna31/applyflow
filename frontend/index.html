@@ -948,25 +948,32 @@ function submitApplication() {
 async function sendGmailNotification(app) {
   const cfg = S.gmail;
   if (!cfg.addr || !cfg.pass || !cfg.backendUrl) return;
+
   try {
-    await fetch(cfg.backendUrl + '/send-notification', {
+    await fetch(cfg.backendUrl + '/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        gmailUser: cfg.addr,
-        gmailPass: cfg.pass,
-        to:        cfg.to || cfg.addr,
-        application: {
-          company:   app.company,
-          title:     app.title,
-          portal:    app.portal,
-          url:       app.url,
-          date:      app.date,
-          applicant: S.profile,
-        }
+        gmail: cfg.addr,
+        appPassword: cfg.pass,
+        to: cfg.to || cfg.addr,
+
+        applicantName: `${S.profile?.fname || ''} ${S.profile?.lname || ''}`.trim(),
+
+        jobTitle: app.title || '',
+        company: app.company || '',
+        portal: app.portal || '',
+        jobUrl: app.url || '',
+        location: app.location || '',
+        appliedAt: app.date || new Date().toLocaleString(),
+
+        skills: '',
+        experience: ''
       })
     });
-  } catch(e) { console.warn('Gmail notification failed:', e.message); }
+  } catch (e) {
+    console.warn('Gmail notification failed:', e.message);
+  }
 }
 
 function loadGmailSettings() {
