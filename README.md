@@ -1,3 +1,194 @@
+# 🚀 Built ApplyFlow AI — A Privacy-First AI-Powered Job Application Workflow Platform
+
+Job searching shouldn't feel like managing a spreadsheet, hunting through emails, or trusting sensitive career data to multiple third-party platforms.
+
+So I built **ApplyFlow AI** — a secure, AI-powered application management system designed to automate the entire job search workflow while giving users complete ownership of their data.
+
+🔗 **Live Demo:** [https://applyflow-production-df0d.up.railway.app/](https://applyflow-production-df0d.up.railway.app/)
+
+🔗 **GitHub:** [https://github.com/thiruna31/applyflow](https://github.com/thiruna31/applyflow)
+
+---
+
+## 💡 The Problem
+
+As a job seeker, I found myself constantly:
+
+❌ Updating spreadsheets manually
+❌ Searching Gmail for interview emails
+❌ Losing track of application statuses
+❌ Using multiple tools to manage one workflow
+❌ Sharing personal information with external platforms
+❌ Having no control over where my data was stored
+
+I wanted a solution that was intelligent, automated, secure, and completely private.
+
+---
+
+# Introducing ApplyFlow AI
+
+A personal AI-powered workflow platform that transforms scattered job applications into an automated pipeline.
+
+### 🔐 Privacy First Architecture
+
+Unlike many SaaS platforms that centralize user information, ApplyFlow AI was designed around **data ownership and security**.
+
+✔ User-scoped authentication and authorization
+
+✔ Secure Google OAuth login
+
+✔ Isolated database access
+
+✔ No unnecessary data exposure
+
+✔ Complete control over personal information
+
+✔ Download all application data whenever needed
+
+✔ Permanently delete all records instantly for safety and privacy purposes
+
+✔ Build your own ecosystem instead of relying on third-party platforms
+
+Because your career data should belong to **you**, not someone else.
+
+---
+
+# 🤖 AI-Powered Automation
+
+ApplyFlow AI automatically:
+
+### 📧 Connects to Gmail
+
+Securely retrieves job-related emails.
+
+### 🧠 Uses AI to understand email context
+
+Automatically identifies:
+
+* Applications
+* Interview invitations
+* Rejections
+* Offers
+
+### 📊 Organizes everything into a Kanban pipeline
+
+```text
+Applied
+    ↓
+Interview
+    ↓
+Offer
+    ↓
+Rejected
+```
+
+No manual updates. No spreadsheets.
+
+---
+
+# ⚙️ Technical Architecture
+
+### Frontend
+
+* Next.js
+* TypeScript
+* Tailwind CSS
+
+### Backend
+
+* Next.js API Routes
+* Server-side processing
+
+### Authentication
+
+* Auth.js / NextAuth
+* Google OAuth
+
+### Database
+
+* PostgreSQL
+
+### ORM
+
+* Prisma
+
+### Integrations
+
+* Gmail API
+
+### Deployment
+
+* Railway
+
+---
+
+# 🔄 Workflow
+
+```text
+Google OAuth
+      ↓
+Secure Authentication
+      ↓
+Gmail Integration
+      ↓
+Email Retrieval
+      ↓
+AI Classification
+      ↓
+PostgreSQL Storage
+      ↓
+Kanban Dashboard
+      ↓
+Track Entire Job Search Journey
+```
+
+---
+
+# 🔒 Security Features
+
+Security wasn't an afterthought—it was one of the design goals.
+
+✅ Authorization-based access
+
+✅ User-isolated data architecture
+
+✅ Secure OAuth flow
+
+✅ Server-side protected APIs
+
+✅ Data export functionality
+
+✅ Instant account cleanup and data deletion
+
+✅ Privacy-first design philosophy
+
+---
+
+# Engineering Concepts Implemented
+
+• Full-Stack Development
+• AI Workflow Automation
+• OAuth Authentication
+• Role-Based Authorization
+• Database Modeling with Prisma
+• API Integration with Gmail
+• Secure Data Handling
+• User-Scoped Architecture
+• Server-Side Rendering
+• Production Deployment with Railway
+• End-to-End Application Design
+• Privacy-First Software Engineering
+
+---
+
+### What started as a personal productivity problem evolved into a fully automated, privacy-focused AI application that saves time, reduces manual effort, and gives complete ownership back to the user.
+
+Building software for yourself often leads to solving problems that many others face.
+
+**Own your data. Automate your workflow. Stay secure.**
+
+#AI #SoftwareEngineering #FullStackDevelopment #NextJS #TypeScript #PostgreSQL #Prisma #AuthJS #GoogleOAuth #Automation #DeveloperTools #BuildInPublic #PrivacyFirst #WebDevelopment #Railway #OpenSource #JobSearch #Productivity #ArtificialIntelligence #SecureAI #SaaS #100DaysOfCode #MachineLearning #TechInnovation #SoftwareDeveloper #DataPrivacy #IndieHackers #AIApplications #StartupJourney
+
 # ApplyFlow — Job Application Automator
 
 A personal job application automation tool with Gmail notifications.
