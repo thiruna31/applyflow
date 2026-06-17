@@ -19,49 +19,7 @@ applyflow/
 
 ---
 
-## 🚀 Quick Start (5 minutes)
 
-### Step 1 — Install backend dependencies
-
-```bash
-npm install
-```
-
-### Step 2 — Get a Gmail App Password
-
-1. Go to [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Enable **2-Step Verification** if not already on
-3. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-4. Select app: **Mail**, device: **Other (ApplyFlow)**
-5. Copy the 16-character password — you'll use this in the app
-
-### Step 3 — Run the backend locally
-
-```bash
-npm start
-# or for auto-reload during development:
-npm run dev
-```
-
-Server starts at `http://localhost:3001`
-
-### Step 4 — Open the frontend
-
-Open `public/index.html` in your browser, or serve it:
-
-```bash
-npx serve public
-```
-
-### Step 5 — Configure Gmail in the app
-
-1. Go to **Settings** in ApplyFlow
-2. Enter your Gmail address
-3. Enter your App Password (from Step 2)
-4. Backend URL: `http://localhost:3001`
-5. Click **Test Connection** → then **Send Test Email**
-
----
 
 ## 🌐 Deployment (Production)
 
