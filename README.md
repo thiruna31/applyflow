@@ -65,7 +65,7 @@ npx serve public
 
 ## 🌐 Deployment (Production)
 
-### Option A — Deploy Backend to Railway (Free)
+  Deploy Backend to Railway 
 
 1. Push this folder to a GitHub repo
 2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
@@ -73,22 +73,6 @@ npx serve public
 4. Railway auto-detects Node.js and runs `npm start`
 5. Copy your Railway URL (e.g. `https://applyflow-abc123.railway.app`)
 
-### Option B — Deploy Backend to Render (Free)
-
-1. Go to [render.com](https://render.com) → New → Web Service
-2. Connect your GitHub repo
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Copy your Render URL
-
-### Deploy Frontend to Netlify (Free)
-
-1. Go to [netlify.com](https://netlify.com) → Add new site → Deploy manually
-2. Drag & drop the `public/` folder
-3. Your site is live instantly at a `*.netlify.app` URL
-4. In ApplyFlow Settings, update the Backend URL to your Railway/Render URL
-
----
 
 ## 🔒 Security Notes
 
